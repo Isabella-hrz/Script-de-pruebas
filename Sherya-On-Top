@@ -159,39 +159,52 @@ mainTab:AddSwitch("Auto (Demon Sword)", function(state)
     end)
 end)
 
+local autoRebirthUI = false
+local rebirthConnection
+
 mainTab:AddSwitch("Auto Rebirth", function(state)
-    autoRebirth = state
+    autoRebirthUI = state
 
-    task.spawn(function()
-        while autoRebirth do
-            pcall(function()
-                local gui = player.PlayerGui
-                -- Paso 1: Buscar y presionar el botón de renacer
-                local rebirthButton = gui:FindFirstChild("RENACER", true)
-                if rebirthButton and rebirthButton:IsA("TextButton") and rebirthButton.Visible then
-                    rebirthButton:Activate()
-                    task.wait(0.5)
-                end
+    if autoRebirthUI then
+        local player = game.Players.LocalPlayer
+        local gui = player:WaitForChild("PlayerGui")
 
-                -- Paso 2: Buscar el TextBox y escribir "yes"
-                local typeBox = gui:FindFirstChildWhichIsA("TextBox", true)
-                if typeBox and typeBox.Visible then
-                    typeBox.Text = "yes"
-                    typeBox:CaptureFocus()
-                    task.wait(0.2)
-                    typeBox:ReleaseFocus()
-                    task.wait(0.2)
+        local function autoConfirmRebirth()
+            for _, descendant in pairs(gui:GetDescendants()) do
+                if descendant:IsA("TextBox") and descendant.Visible then
+                    local parentFrame = descendant:FindFirstAncestorWhichIsA("Frame")
+                    if parentFrame then
+                        descendant.Text = "yes"
+                        local confirmButton = parentFrame:FindFirstChildWhichIsA("TextButton", true)
+                        if confirmButton and confirmButton.Text:lower():match("confirmar") then
+                            task.wait(0.3)
+                            confirmButton:Activate()
+                        end
+                    end
                 end
-
-                -- Paso 3: Buscar y presionar el botón de confirmar
-                local confirmarBtn = gui:FindFirstChild("CONFIRMAR", true)
-                if confirmarBtn and confirmarBtn:IsA("TextButton") and confirmarBtn.Visible then
-                    confirmarBtn:Activate()
-                end
-            end)
-            task.wait(3)
+            end
         end
-    end)
+
+        rebirthConnection = gui.DescendantAdded:Connect(function(desc)
+            if desc:IsA("TextBox") then
+                task.wait(0.5)
+                autoConfirmRebirth()
+            end
+        end)
+    else
+        if rebirthConnection then
+            rebirthConnection:Disconnect()
+            rebirthConnection = nil
+        end
+    end
+end)
+
+miscTab:AddTextBox("Auto Speed", function(text)
+    speedValue = tonumber(text) or 16
+
+    if player and player.Character and player.Character:FindFirstChild("Humanoid") then
+        player.Character.Humanoid.WalkSpeed = speedValue
+    end
 end)
 
 miscTab:AddTextBox("Auto Speed", function(text)
