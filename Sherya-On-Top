@@ -159,8 +159,6 @@ mainTab:AddSwitch("Auto (Demon Sword)", function(state)
     end)
 end)
 
-local autoRebirth = false
-
 mainTab:AddSwitch("Auto Rebirth", function(state)
     autoRebirth = state
 
@@ -168,35 +166,27 @@ mainTab:AddSwitch("Auto Rebirth", function(state)
         while autoRebirth do
             pcall(function()
                 local gui = player.PlayerGui
+                -- Paso 1: Buscar y presionar el botón de renacer
                 local rebirthButton = gui:FindFirstChild("RENACER", true)
-
                 if rebirthButton and rebirthButton:IsA("TextButton") and rebirthButton.Visible then
-                    -- Simula click en el botón de renacer
-                    if rebirthButton.Activated then
-                        rebirthButton:Activate()
-                    elseif rebirthButton.MouseButton1Click then
-                        rebirthButton.MouseButton1Click:Fire()
-                    end
-                    task.wait(1)
+                    rebirthButton:Activate()
+                    task.wait(0.5)
+                end
 
-                    -- Escribe "yes" en el TextBox
-                    local typeBox = gui:FindFirstChildWhichIsA("TextBox", true)
-                    if typeBox and typeBox.Visible then
-                        typeBox.Text = "yes"
-                        typeBox:CaptureFocus()
-                        task.wait(0.2)
-                        typeBox:ReleaseFocus()
-                    end
+                -- Paso 2: Buscar el TextBox y escribir "yes"
+                local typeBox = gui:FindFirstChildWhichIsA("TextBox", true)
+                if typeBox and typeBox.Visible then
+                    typeBox.Text = "yes"
+                    typeBox:CaptureFocus()
+                    task.wait(0.2)
+                    typeBox:ReleaseFocus()
+                    task.wait(0.2)
+                end
 
-                    -- Click en el botón de confirmar
-                    local confirmarBtn = gui:FindFirstChild("CONFIRMAR", true)
-                    if confirmarBtn and confirmarBtn:IsA("TextButton") and confirmarBtn.Visible then
-                        if confirmarBtn.Activated then
-                            confirmarBtn:Activate()
-                        elseif confirmarBtn.MouseButton1Click then
-                            confirmarBtn.MouseButton1Click:Fire()
-                        end
-                    end
+                -- Paso 3: Buscar y presionar el botón de confirmar
+                local confirmarBtn = gui:FindFirstChild("CONFIRMAR", true)
+                if confirmarBtn and confirmarBtn:IsA("TextButton") and confirmarBtn.Visible then
+                    confirmarBtn:Activate()
                 end
             end)
             task.wait(3)
