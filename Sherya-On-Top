@@ -34,22 +34,18 @@ autoBrawlFolder:AddSwitch("Auto Join Brawl", function(state)
         while autoBrawl do
             pcall(function()
                 local replicatedStorage = game:GetService("ReplicatedStorage")
-                local brawlEvent = replicatedStorage:FindFirstChild("brawlEvent")
-                local brawlStatus = replicatedStorage:FindFirstChild("BrawlStatus") -- StringValue con el texto del estado
+                local brawlEvent = replicatedStorage:WaitForChild("brawlEvent")
+                local brawlStatus = replicatedStorage:WaitForChild("BrawlStatus")
 
-                if brawlEvent and brawlStatus and brawlStatus:IsA("StringValue") then
-                    local statusText = brawlStatus.Value:lower()
-
-                    -- Detecta texto tipo: "you have 10 seconds to join"
-                    if statusText:find("you have") and statusText:find("to join") then
+                if brawlStatus and brawlStatus:IsA("StringValue") then
+                    local status = brawlStatus.Value:lower()
+                    if status:find("you have") and status:find("to join") then
                         brawlEvent:FireServer("JoinBrawl")
-                        warn("Se ha unido automáticamente a la Brawl.")
-                        -- Esperar para evitar spamear
-                        task.wait(12)
+                        wait(12) -- evitar múltiples envíos durante la cuenta regresiva
                     end
                 end
             end)
-            task.wait(1)
+            wait(1)
         end
     end)
 end)
