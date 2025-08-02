@@ -15,18 +15,19 @@ local maintab = window:AddTab("Main")
 local farmtab = window:AddTab("Farm")
 local farmmtab = window:AddTab("Farm++")
 local misctab = window:AddTab("Misc")
-local rebirthtab = window:AddTab("Paid")
+local rebirthtab = window:AddTab("Rebirth")
 local killertab = window:AddTab("Killer")
 local playertab = window:AddTab("Player")
 local teleporttab = window:AddTab("Teleport")
 local calculatortab = window:AddTab("Calculator")
 local credittab = window:AddTab("Credits")
 
-local autobrawlFolder = maintab:AddFolder(" Auto Brawls")
+local autoBrawlFolder = maintab:AddFolder("Auto Brawl")
 
 getgenv().autoBrawl = false
 getgenv().autoWinBrawl = false
 
+-- Auto Join Brawl cuando falten 4 segundos
 local function autoJoinBrawlAt4Sec()
     while getgenv().autoBrawl do
         local brawlButton, timerLabel = nil, nil
@@ -47,12 +48,12 @@ local function autoJoinBrawlAt4Sec()
                 wait(2)
             end
         end
-        task.wait(0.5)
+        wait(0.5)
     end
 end
 
+-- Función para equipar el puño
 local function equipFist()
-    if player.Character and player.Character:FindFirstChildOfClass("Tool") then return end
     for _, tool in ipairs(player.Backpack:GetChildren()) do
         if tool.Name:lower():find("fist") then
             player.Character.Humanoid:EquipTool(tool)
@@ -61,6 +62,7 @@ local function equipFist()
     end
 end
 
+-- Auto Win Brawl (teletransporta y ataca a otros jugadores)
 local function isInBrawl()
     local tag = player:FindFirstChild("InBrawl")
     return tag and tag.Value == true
@@ -72,29 +74,31 @@ local function autoWinBrawl()
             equipFist()
             for _, plr in pairs(Players:GetPlayers()) do
                 if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                    pcall(function()
-                        player.Character.HumanoidRootPart.CFrame = plr.Character.HumanoidRootPart.CFrame + Vector3.new(0,2,0)
-                    end)
+                    player.Character.HumanoidRootPart.CFrame = plr.Character.HumanoidRootPart.CFrame + Vector3.new(0,2,0)
                     VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.One, false, game)
-                    task.wait(0.1)
+                    wait(0.1)
                     VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.One, false, game)
                 end
             end
         end
-        task.wait(0.5)
+        wait(0.5)
     end
 end
 
 autobrawlFolder:AddSwitch("Auto Join Brawl", {flag = "auto_brawl"}, function(state)
     getgenv().autoBrawl = state
     if state then
-        task.spawn(autoJoinBrawlAt4Sec)
+        if not getgenv()._autoBrawlThread or not coroutine.status(getgenv()._autoBrawlThread) == "running" then
+            getgenv()._autoBrawlThread = task.spawn(autoJoinBrawlAt4Sec)
+        end
     end
 end)
 
 autobrawlFolder:AddSwitch("Auto Win Brawl", {flag = "auto_win_brawl"}, function(state)
     getgenv().autoWinBrawl = state
     if state then
-        task.spawn(autoWinBrawl)
+        if not getgenv()._autoWinBrawlThread or not coroutine.status(getgenv()._autoWinBrawlThread) == "running" then
+            getgenv()._autoWinBrawlThread = task.spawn(autoWinBrawl)
+        end
     end
 end)
