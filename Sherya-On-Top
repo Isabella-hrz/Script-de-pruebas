@@ -13,8 +13,9 @@ local window = library:AddWindow("Sherya Script", {
 
 local maintab = window:AddTab("Main")
 local farmtab = window:AddTab("Farm")
-local farmmtab = window:AddTab("Farm++")
+local gymtab = window:AddTab("Gyms")
 local misctab = window:AddTab("Misc")
+local eggtab = window:AddTab("Eggs")
 local rebirthtab = window:AddTab("Paid")
 local killertab = window:AddTab("Killer")
 local playertab = window:AddTab("Player")
@@ -26,7 +27,7 @@ local autoBrawlFolder = maintab:AddFolder("  Auto Brawls")
 
 local autoBrawl = false
 
-Main:AddSwitch("Auto Join Brawl", function(state)
+autoBrawlFolder:AddSwitch("Auto Join Brawl", function(state)
     autoBrawl = state
 
     task.spawn(function()
