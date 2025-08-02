@@ -18,36 +18,55 @@ if not whitelist[localPlayer.Name] then
     return
 end
 
-local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/CenteredSniper/Fluent/main/source.lua"))()
-local themeColor = Color3.fromRGB(255, 0, 255) -- Morado fosforescente
+local Library = loadstring(game:HttpGetAsync("https://github.com/ActualMasterOogway/Fluent-Renewed/releases/latest/download/Fluent.luau"))()
+local SaveManager = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/SaveManager.luau"))()
+local InterfaceManager = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/InterfaceManager.luau"))()
 
-local Window = Fluent:CreateWindow({
+local Window = Library:CreateWindow{
     Title = "Sherya Script",
     SubTitle = "Titan Simulator",
     TabWidth = 160,
     Size = UDim2.fromOffset(660, 660),
     Acrylic = true,
-    Theme = {
-        Main = themeColor,
-        Accent = themeColor,
-        Outline = Color3.fromRGB(200, 0, 255),
+    Theme = "Dark", -- Puedes cambiar a "Light" si prefieres
+    MinimizeKey = Enum.KeyCode.RightControl
+}
+
+local Tabs = {
+    Main = Window:CreateTab{
+        Title = "Main",
+        Icon = "phosphor-sword-duotone"
+    },
+    Misc = Window:CreateTab{
+        Title = "Misc",
+        Icon = "phosphor-magic-wand-duotone"
+    },
+    Killer = Window:CreateTab{
+        Title = "Killer",
+        Icon = "phosphor-skull-duotone"
+    },
+    Players = Window:CreateTab{
+        Title = "Players",
+        Icon = "phosphor-users-duotone"
+    },
+    Credits = Window:CreateTab{
+        Title = "Credits",
+        Icon = "phosphor-star-duotone"
     }
-})
+}
 
-local mainTab = Window:AddTab({ Title = "Main", Icon = "rbxassetid://7734053499" })
-local miscTab = Window:AddTab({ Title = "Misc", Icon = "rbxassetid://7734053499" })
-local killerTab = Window:AddTab({ Title = "Killer", Icon = "rbxassetid://7734053499" })
-local playersTab = Window:AddTab({ Title = "Players", Icon = "rbxassetid://7734053499" })
-local creditsTab = Window:AddTab({ Title = "Credits", Icon = "rbxassetid://7734053499" })
-
+local Options = Library.Options
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local player = Players.LocalPlayer
 
-local autoPunch = false
+-- Morado fosforescente para controles
+local accentColor = Color3.fromRGB(255, 0, 255)
 
+-- Auto Punch
+local autoPunch = false
 local function equipPunch()
     local backpack = player:WaitForChild("Backpack")
     local character = player.Character or player.CharacterAdded:Wait()
@@ -65,7 +84,7 @@ player.CharacterAdded:Connect(function()
     end
 end)
 
-mainTab:AddToggle({
+Tabs.Main:CreateToggle("AutoPunch", {
     Title = "Auto Punch",
     Default = false,
     Callback = function(state)
@@ -90,10 +109,11 @@ mainTab:AddToggle({
     end
 })
 
+-- Auto Orb
 local autoOrb = false
 local orbGuiCreado = false
 
-mainTab:AddToggle({
+Tabs.Main:CreateToggle("AutoOrb", {
     Title = "Auto Orb",
     Default = false,
     Callback = function(state)
@@ -101,14 +121,14 @@ mainTab:AddToggle({
         if not orbGuiCreado then
             local screenGui = Instance.new("ScreenGui")
             screenGui.Name = "Sherya"
-            screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+            screenGui.Parent = player:WaitForChild("PlayerGui")
             orbGuiCreado = true
         end
         task.spawn(function()
             while autoOrb do
                 for _, v in pairs(workspace:GetChildren()) do
                     if v.Name == "Drop" and v:IsA("BasePart") then
-                        v.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
+                        v.CFrame = player.Character.HumanoidRootPart.CFrame
                     end
                 end
                 task.wait(1)
@@ -117,8 +137,8 @@ mainTab:AddToggle({
     end
 })
 
+-- Auto Demon Sword
 local autoDemonSword = false
-
 local function equipDemonSword()
     local character = player.Character or player.CharacterAdded:Wait()
     local backpack = player:WaitForChild("Backpack")
@@ -136,7 +156,7 @@ player.CharacterAdded:Connect(function()
     end
 end)
 
-mainTab:AddToggle({
+Tabs.Main:CreateToggle("AutoDemonSword", {
     Title = "Auto (Demon Sword)",
     Default = false,
     Callback = function(state)
@@ -163,9 +183,11 @@ mainTab:AddToggle({
     end
 })
 
+-- Misc Tab
 local speedValue = 16
-miscTab:AddInput({
+Tabs.Misc:CreateInput("AutoSpeed", {
     Title = "Auto Speed",
+    Default = "16",
     Placeholder = "16",
     Numeric = true,
     Callback = function(text)
@@ -179,7 +201,7 @@ miscTab:AddInput({
 local autoSpeedEnabled = false
 local autoSpeedConnection
 
-miscTab:AddToggle({
+Tabs.Misc:CreateToggle("AutoSetSpeed", {
     Title = "Auto Set Speed",
     Default = false,
     Callback = function(bool)
@@ -207,12 +229,12 @@ miscTab:AddToggle({
 })
 
 local infiniteJumpConnection
-miscTab:AddToggle({
+Tabs.Misc:CreateToggle("InfiniteJump", {
     Title = "Infinite Jump",
     Default = false,
     Callback = function(bool)
         if bool then
-            infiniteJumpConnection = game:GetService("UserInputService").JumpRequest:Connect(function()
+            infiniteJumpConnection = UserInputService.JumpRequest:Connect(function()
                 if player.Character and player.Character:FindFirstChild("Humanoid") then
                     player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
                 end
@@ -227,13 +249,13 @@ miscTab:AddToggle({
 })
 
 local noclipLoop
-miscTab:AddToggle({
+Tabs.Misc:CreateToggle("NoClip", {
     Title = "No Clip",
     Default = false,
     Callback = function(bool)
         if bool then
-            noclipLoop = game:GetService("RunService").Stepped:Connect(function()
-                for _, child in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+            noclipLoop = RunService.Stepped:Connect(function()
+                for _, child in pairs(player.Character:GetDescendants()) do
                     if child:IsA("BasePart") and child.CanCollide == true then
                         child.CanCollide = false
                     end
@@ -244,7 +266,7 @@ miscTab:AddToggle({
                 noclipLoop:Disconnect()
                 noclipLoop = nil
             end
-            for _, child in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+            for _, child in pairs(player.Character:GetDescendants()) do
                 if child:IsA("BasePart") then
                     child.CanCollide = true
                 end
@@ -253,14 +275,14 @@ miscTab:AddToggle({
     end
 })
 
-miscTab:AddButton({
+Tabs.Misc:CreateButton{
     Title = "Chat Espía",
     Callback = function()
         loadstring(game:HttpGet("https://pastebin.com/raw/Vv9Yw3Uw"))()
     end
-})
+}
 
-miscTab:AddButton({
+Tabs.Misc:CreateButton{
     Title = "Anti AFK",
     Callback = function()
         local VirtualUser = game:GetService("VirtualUser")
@@ -275,11 +297,11 @@ miscTab:AddButton({
             Duration = 5
         })
     end
-})
+}
 
+-- Killer Tab
 local autoStomp = false
 local stompToolName = "Stomp"
-
 local function equipStomp()
     local character = player.Character or player.CharacterAdded:Wait()
     local backpack = player:WaitForChild("Backpack")
@@ -300,8 +322,7 @@ player.CharacterAdded:Connect(function()
 end)
 
 local autoPunchAll = false
-
-killerTab:AddToggle({
+Tabs.Killer:CreateToggle("AutoKillPunch", {
     Title = "Auto Kill (Punch)",
     Default = false,
     Callback = function(state)
@@ -309,7 +330,7 @@ killerTab:AddToggle({
         task.spawn(function()
             while autoPunchAll do
                 pcall(function()
-                    local player = game.Players.LocalPlayer
+                    local player = Players.LocalPlayer
                     local backpack = player:WaitForChild("Backpack")
                     local character = player.Character or player.CharacterAdded:Wait()
                     local hrp = character:FindFirstChild("HumanoidRootPart")
@@ -317,7 +338,7 @@ killerTab:AddToggle({
                     if tool and tool.Parent ~= character then
                         tool.Parent = character
                     end
-                    for _, otherPlayer in ipairs(game.Players:GetPlayers()) do
+                    for _, otherPlayer in ipairs(Players:GetPlayers()) do
                         if not autoPunchAll then break end
                         if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
                             hrp.CFrame = otherPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 2, 0)
@@ -334,7 +355,7 @@ killerTab:AddToggle({
     end
 })
 
-killerTab:AddToggle({
+Tabs.Killer:CreateToggle("AutoKillStomp", {
     Title = "Auto Kill (Pisotear)",
     Default = false,
     Callback = function(state)
@@ -364,8 +385,7 @@ killerTab:AddToggle({
 })
 
 local autoKill = false
-
-killerTab:AddToggle({
+Tabs.Killer:CreateToggle("AutoKillDemonSword", {
     Title = "Auto Kill (Demon Sword)",
     Default = false,
     Callback = function(state)
@@ -382,7 +402,7 @@ killerTab:AddToggle({
         task.spawn(function()
             while autoKill do
                 pcall(function()
-                    local lp = game.Players.LocalPlayer
+                    local lp = Players.LocalPlayer
                     local character = lp.Character or lp.CharacterAdded:Wait()
                     local humanoidRoot = character:FindFirstChild("HumanoidRootPart")
                     local tool = character:FindFirstChild("Demon Sword") or lp.Backpack:FindFirstChild("Demon Sword")
@@ -391,7 +411,7 @@ killerTab:AddToggle({
                         task.wait(0.2)
                     end
                     if not character:FindFirstChild("Demon Sword") then return end
-                    for _, p in ipairs(game.Players:GetPlayers()) do
+                    for _, p in ipairs(Players:GetPlayers()) do
                         if p ~= lp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
                             local enemyHRP = p.Character.HumanoidRootPart
                             humanoidRoot.CFrame = enemyHRP.CFrame * CFrame.new(0, 0, 2)
@@ -409,24 +429,32 @@ killerTab:AddToggle({
     end
 })
 
-for _, p in ipairs(game.Players:GetPlayers()) do
+-- Players Tab
+for _, p in ipairs(Players:GetPlayers()) do
     if p ~= player then
-        playersTab:AddButton({
+        Tabs.Players:CreateButton{
             Title = "Teleport " .. p.Name,
             Callback = function()
                 if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
                     local myChar = player.Character
                     if myChar and myChar:FindFirstChild("HumanoidRootPart") then
                         myChar.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
-                        Window:Notify("Teletransportado a " .. p.Name)
+                        Window:Dialog{
+                            Title = "Teletransporte",
+                            Content = "Teletransportado a " .. p.Name,
+                            Buttons = {
+                                {Title = "OK"}
+                            }
+                        }
                     end
                 end
             end
-        })
+        }
     end
 end
 
-creditsTab:AddParagraph({
+-- Credits Tab
+Tabs.Credits:CreateParagraph("Creditos", {
     Title = "",
     Content = [[
 ╭──────────────────────────╮
@@ -446,3 +474,22 @@ Diviertete amiguito
 Cost 3000 robux, Acepto transferencias o tarjetas de google play
     ]]
 })
+
+-- Opcional: Notificación de carga
+Library:Notify{
+    Title = "Fluent",
+    Content = "El script ha sido cargado.",
+    Duration = 8
+}
+
+-- Configuración de SaveManager e InterfaceManager
+SaveManager:SetLibrary(Library)
+InterfaceManager:SetLibrary(Library)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes{}
+InterfaceManager:SetFolder("FluentTitanSimulator")
+SaveManager:SetFolder("FluentTitanSimulator/Configs")
+InterfaceManager:BuildInterfaceSection(Tabs.Misc)
+SaveManager:BuildConfigSection(Tabs.Misc)
+Window:SelectTab(1)
+SaveManager:LoadAutoloadConfig()
