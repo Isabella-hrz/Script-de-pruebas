@@ -23,13 +23,24 @@ local calculatortab = window:AddTab("Calculator")
 local credittab = window:AddTab("Credits")
 
 local autoBrawlFolder = maintab:AddFolder("  Auto Brawls")
-local autoGymFolder = maintab:AddFolder("  Auto Gyms")
-local autoRockFolder = maintab:AddFolder("  Auto Rocks")
-local autoRebirthFolder = maintab:AddFolder("  Auto Rebirth")
-local autoEquipFolder = maintab:AddFolder("  Auto Equip Tools")
 
-local misc1Folder = misctab:AddFolder("  Misc 1")
-local misc2Folder = misctab:AddFolder("  Misc 2")
-local misc3Folder = misctab:AddFolder("  Misc 3")
-local misc4Folder = misctab:AddFolder("  Misc 4")
-local misc5Folder = misctab:AddFolder("  Misc 5")
+local autoBrawl = false
+
+autoBrawlFolder:AddSwitch("Auto Brawl", function(state)
+    autoBrawl = state
+
+    task.spawn(function()
+        while autoBrawl do
+            pcall(function()
+                local player = game.Players.LocalPlayer
+                local remotes = game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents")
+                local brawlEvent = remotes:FindFirstChild("Brawl")
+
+                if brawlEvent then
+                    brawlEvent:FireServer("JoinBrawl")
+                end
+            end)
+            wait(10) -- Espera para no spamear el evento
+        end
+    end)
+end)
