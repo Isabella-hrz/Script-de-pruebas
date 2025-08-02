@@ -7,9 +7,13 @@ local whitelist = {
     ["Cesar0_o1"] = true,
 }
 
-local localPlayer = game.Players.LocalPlayer
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local player = Players.LocalPlayer
 
-if not whitelist[localPlayer.Name] then
+if not whitelist[player.Name] then
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = "Acceso Denegado",
         Text = "No estás autorizado para usar este script.",
@@ -18,77 +22,43 @@ if not whitelist[localPlayer.Name] then
     return
 end
 
-local Library = loadstring(game:HttpGetAsync("https://github.com/ActualMasterOogway/Fluent-Renewed/releases/latest/download/Fluent.luau"))()
-local SaveManager = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/SaveManager.luau"))()
-local InterfaceManager = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/InterfaceManager.luau"))()
-
-local Window = Library:CreateWindow{
+local UILibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/2581235867/21/refs/heads/main/source.lua"))().new({
+    Logo = "rbxassetid://72748378219736", -- Tu logo personalizado
     Title = "Sherya Script",
-    SubTitle = "By Isabella",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(400, 400),
-    Acrylic = true,
-    Theme = "Amethyst Dark", -- Puedes cambiar a "Light" si prefieres
-    MinimizeKey = Enum.KeyCode.RightControl
-}
+    Description = "By Isabella",
+    Keybind = Enum.KeyCode.LeftControl
+})
 
-local Tabs = {
-    Main = Window:CreateTab{
-        Title = "Main",
-        Icon = "phosphor-sword-duotone"
-    },
-    Misc = Window:CreateTab{
-        Title = "Misc",
-        Icon = "phosphor-magic-wand-duotone"
-    },
-    Killer = Window:CreateTab{
-        Title = "Killer",
-        Icon = "phosphor-skull-duotone"
-    },
-    Players = Window:CreateTab{
-        Title = "Players",
-        Icon = "phosphor-users-duotone"
-    },
-    Credits = Window:CreateTab{
-        Title = "Credits",
-        Icon = "phosphor-star-duotone"
-    }
-}
+-- Tabs
+local MainTab = UILibrary:NewTab({Title = "Main", Icon = "rbxassetid://7734053499"})
+local MiscTab = UILibrary:NewTab({Title = "Misc", Icon = "rbxassetid://7734053499"})
+local KillerTab = UILibrary:NewTab({Title = "Killer", Icon = "rbxassetid://7734053499"})
+local PlayersTab = UILibrary:NewTab({Title = "Players", Icon = "rbxassetid://7734053499"})
+local CreditsTab = UILibrary:NewTab({Title = "Credits", Icon = "rbxassetid://7734053499"})
 
-local Options = Library.Options
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local VirtualInputManager = game:GetService("VirtualInputManager")
-local player = Players.LocalPlayer
+-- Secciones
+local MainSection = MainTab:NewSection({Title = "Funciones Principales", Position = "Left"})
+local MiscSection = MiscTab:NewSection({Title = "Utilidades", Position = "Left"})
+local KillerSection = KillerTab:NewSection({Title = "Killer", Position = "Left"})
+local PlayersSection = PlayersTab:NewSection({Title = "Teleports", Position = "Left"})
+local CreditsSection = CreditsTab:NewSection({Title = "Créditos", Position = "Left"})
 
--- Morado fosforescente para controles
-local accentColor = Color3.fromRGB(255, 0, 255)
-
--- Auto Punch
+-- Main
 local autoPunch = false
-local function equipPunch()
-    local backpack = player:WaitForChild("Backpack")
-    local character = player.Character or player.CharacterAdded:Wait()
-    local tool = backpack:FindFirstChild("Punch") or character:FindFirstChild("Punch")
-    if tool and tool.Parent ~= character then
-        tool.Parent = character
-        task.wait(0.2)
-    end
-end
-
-player.CharacterAdded:Connect(function()
-    if autoPunch then
-        task.wait(1)
-        equipPunch()
-    end
-end)
-
-Tabs.Main:CreateToggle("AutoPunch", {
+MainSection:NewToggle({
     Title = "Auto Punch",
     Default = false,
     Callback = function(state)
         autoPunch = state
+        local function equipPunch()
+            local backpack = player:WaitForChild("Backpack")
+            local character = player.Character or player.CharacterAdded:Wait()
+            local tool = backpack:FindFirstChild("Punch") or character:FindFirstChild("Punch")
+            if tool and tool.Parent ~= character then
+                tool.Parent = character
+                task.wait(0.2)
+            end
+        end
         if autoPunch then
             equipPunch()
         end
@@ -109,11 +79,9 @@ Tabs.Main:CreateToggle("AutoPunch", {
     end
 })
 
--- Auto Orb
 local autoOrb = false
 local orbGuiCreado = false
-
-Tabs.Main:CreateToggle("AutoOrb", {
+MainSection:NewToggle({
     Title = "Auto Orb",
     Default = false,
     Callback = function(state)
@@ -137,30 +105,21 @@ Tabs.Main:CreateToggle("AutoOrb", {
     end
 })
 
--- Auto Demon Sword
 local autoDemonSword = false
-local function equipDemonSword()
-    local character = player.Character or player.CharacterAdded:Wait()
-    local backpack = player:WaitForChild("Backpack")
-    local tool = backpack:FindFirstChild("Demon Sword") or character:FindFirstChild("Demon Sword")
-    if tool and tool.Parent ~= character then
-        tool.Parent = character
-        task.wait(0.2)
-    end
-end
-
-player.CharacterAdded:Connect(function()
-    if autoDemonSword then
-        task.wait(1)
-        equipDemonSword()
-    end
-end)
-
-Tabs.Main:CreateToggle("AutoDemonSword", {
+MainSection:NewToggle({
     Title = "Auto (Demon Sword)",
     Default = false,
     Callback = function(state)
         autoDemonSword = state
+        local function equipDemonSword()
+            local character = player.Character or player.CharacterAdded:Wait()
+            local backpack = player:WaitForChild("Backpack")
+            local tool = backpack:FindFirstChild("Demon Sword") or character:FindFirstChild("Demon Sword")
+            if tool and tool.Parent ~= character then
+                tool.Parent = character
+                task.wait(0.2)
+            end
+        end
         if autoDemonSword then
             equipDemonSword()
         end
@@ -183,13 +142,11 @@ Tabs.Main:CreateToggle("AutoDemonSword", {
     end
 })
 
--- Misc Tab
+-- Misc
 local speedValue = 16
-Tabs.Misc:CreateInput("AutoSpeed", {
+MiscSection:NewTextbox({
     Title = "Auto Speed",
     Default = "16",
-    Placeholder = "16",
-    Numeric = true,
     Callback = function(text)
         speedValue = tonumber(text) or 16
         if player and player.Character and player.Character:FindFirstChild("Humanoid") then
@@ -200,8 +157,7 @@ Tabs.Misc:CreateInput("AutoSpeed", {
 
 local autoSpeedEnabled = false
 local autoSpeedConnection
-
-Tabs.Misc:CreateToggle("AutoSetSpeed", {
+MiscSection:NewToggle({
     Title = "Auto Set Speed",
     Default = false,
     Callback = function(bool)
@@ -229,7 +185,7 @@ Tabs.Misc:CreateToggle("AutoSetSpeed", {
 })
 
 local infiniteJumpConnection
-Tabs.Misc:CreateToggle("InfiniteJump", {
+MiscSection:NewToggle({
     Title = "Infinite Jump",
     Default = false,
     Callback = function(bool)
@@ -249,7 +205,7 @@ Tabs.Misc:CreateToggle("InfiniteJump", {
 })
 
 local noclipLoop
-Tabs.Misc:CreateToggle("NoClip", {
+MiscSection:NewToggle({
     Title = "No Clip",
     Default = false,
     Callback = function(bool)
@@ -275,14 +231,14 @@ Tabs.Misc:CreateToggle("NoClip", {
     end
 })
 
-Tabs.Misc:CreateButton{
+MiscSection:NewButton({
     Title = "Chat Espía",
     Callback = function()
         loadstring(game:HttpGet("https://pastebin.com/raw/Vv9Yw3Uw"))()
     end
-}
+})
 
-Tabs.Misc:CreateButton{
+MiscSection:NewButton({
     Title = "Anti AFK",
     Callback = function()
         local VirtualUser = game:GetService("VirtualUser")
@@ -297,9 +253,9 @@ Tabs.Misc:CreateButton{
             Duration = 5
         })
     end
-}
+})
 
--- Killer Tab
+-- Killer
 local autoStomp = false
 local stompToolName = "Stomp"
 local function equipStomp()
@@ -314,23 +270,14 @@ local function equipStomp()
     end
 end
 
-player.CharacterAdded:Connect(function()
-    if autoStomp then
-        task.wait(1)
-        equipStomp()
-    end
-end)
-
-local autoPunchAll = false
-Tabs.Killer:CreateToggle("AutoKillPunch", {
+KillerSection:NewToggle({
     Title = "Auto Kill (Punch)",
     Default = false,
     Callback = function(state)
-        autoPunchAll = state
+        local autoPunchAll = state
         task.spawn(function()
             while autoPunchAll do
                 pcall(function()
-                    local player = Players.LocalPlayer
                     local backpack = player:WaitForChild("Backpack")
                     local character = player.Character or player.CharacterAdded:Wait()
                     local hrp = character:FindFirstChild("HumanoidRootPart")
@@ -355,7 +302,7 @@ Tabs.Killer:CreateToggle("AutoKillPunch", {
     end
 })
 
-Tabs.Killer:CreateToggle("AutoKillStomp", {
+KillerSection:NewToggle({
     Title = "Auto Kill (Pisotear)",
     Default = false,
     Callback = function(state)
@@ -384,12 +331,11 @@ Tabs.Killer:CreateToggle("AutoKillStomp", {
     end
 })
 
-local autoKill = false
-Tabs.Killer:CreateToggle("AutoKillDemonSword", {
+KillerSection:NewToggle({
     Title = "Auto Kill (Demon Sword)",
     Default = false,
     Callback = function(state)
-        autoKill = state
+        local autoKill = state
         if autoKill then
             local character = player.Character or player.CharacterAdded:Wait()
             local backpack = player:WaitForChild("Backpack")
@@ -402,7 +348,7 @@ Tabs.Killer:CreateToggle("AutoKillDemonSword", {
         task.spawn(function()
             while autoKill do
                 pcall(function()
-                    local lp = Players.LocalPlayer
+                    local lp = player
                     local character = lp.Character or lp.CharacterAdded:Wait()
                     local humanoidRoot = character:FindFirstChild("HumanoidRootPart")
                     local tool = character:FindFirstChild("Demon Sword") or lp.Backpack:FindFirstChild("Demon Sword")
@@ -429,55 +375,38 @@ Tabs.Killer:CreateToggle("AutoKillDemonSword", {
     end
 })
 
--- Players Tab
+-- Players
 for _, p in ipairs(Players:GetPlayers()) do
     if p ~= player then
-        Tabs.Players:CreateButton{
+        PlayersSection:NewButton({
             Title = "Teleport " .. p.Name,
             Callback = function()
                 if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
                     local myChar = player.Character
                     if myChar and myChar:FindFirstChild("HumanoidRootPart") then
                         myChar.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
-                        Window:Dialog{
+                        UILibrary:Notify({
                             Title = "Teletransporte",
                             Content = "Teletransportado a " .. p.Name,
-                            Buttons = {
-                                {Title = "OK"}
-                            }
-                        }
+                            Duration = 3
+                        })
                     end
                 end
             end
-        }
+        })
     end
 end
 
--- Credits Tab
-Tabs.Credits:CreateParagraph("Creditos", {
-    Title = "",
-    Content = [[
-╭──────────────────────────╮
-   Script hecho por Isabella
-╰──────────────────────────╯
-
-User de Roblox: MissSherya
-Instagram: Sherya_Luck
-TikTok: Sherya6000
-Discord: isabella_hrz
-
-Gracias por usar el script
-
-Recomienda el script para hacer mas actualizaciones
-Hago peticiones de otros juegos
-Diviertete amiguito
-Cost 3000 robux, Acepto transferencias o tarjetas de google play
-    ]]
-})
-
--- Opcional: Notificación de carga
-Library:Notify{
-    Title = "Fluent",
-    Content = "El script ha sido cargado.",
-    Duration = 8
-}
+-- Credits
+CreditsSection:NewLabel({Title = "╭──────────────────────────╮"})
+CreditsSection:NewLabel({Title = "   Script hecho por Isabella"})
+CreditsSection:NewLabel({Title = "╰──────────────────────────╯"})
+CreditsSection:NewLabel({Title = "User de Roblox: MissSherya"})
+CreditsSection:NewLabel({Title = "Instagram: Sherya_Luck"})
+CreditsSection:NewLabel({Title = "TikTok: Sherya6000"})
+CreditsSection:NewLabel({Title = "Discord: isabella_hrz"})
+CreditsSection:NewLabel({Title = "Gracias por usar el script"})
+CreditsSection:NewLabel({Title = "Recomienda el script para hacer mas actualizaciones"})
+CreditsSection:NewLabel({Title = "Hago peticiones de otros juegos"})
+CreditsSection:NewLabel({Title = "Diviertete amiguito"})
+CreditsSection:NewLabel({Title = "Cost 3000 robux, Acepto transferencias o tarjetas de google play"})
