@@ -12,21 +12,14 @@ local window = library:AddWindow("Sherya Script", {
 })
 
 local maintab = window:AddTab("Main")
-local farmtab = window:AddTab("Farm")
-local farmmtab = window:AddTab("Farm++")
-local misctab = window:AddTab("Misc")
-local rebirthtab = window:AddTab("Rebirth")
-local killertab = window:AddTab("Killer")
-local playertab = window:AddTab("Player")
-local teleporttab = window:AddTab("Teleport")
-local calculatortab = window:AddTab("Calculator")
-local credittab = window:AddTab("Credits")
 
-local autobrawlFolder = maintab:AddFolder(" Auto Brawls")
+-- Folder: Auto Brawls
+local autobrawlFolder = maintab:AddFolder("Auto Brawls")
 
 getgenv().autoBrawl = false
 getgenv().autoWinBrawl = false
 
+-- Auto Join Brawl cuando falten 4 segundos
 local function autoJoinBrawlAt4Sec()
     while getgenv().autoBrawl do
         local brawlButton, timerLabel = nil, nil
@@ -44,13 +37,14 @@ local function autoJoinBrawlAt4Sec()
                 pcall(function()
                     brawlButton:Activate()
                 end)
-                wait(2)
+                task.wait(2)
             end
         end
         task.wait(0.5)
     end
 end
 
+-- Función para equipar el puño
 local function equipFist()
     if player.Character and player.Character:FindFirstChildOfClass("Tool") then return end
     for _, tool in ipairs(player.Backpack:GetChildren()) do
@@ -61,11 +55,13 @@ local function equipFist()
     end
 end
 
+-- Detecta si estás en Brawl
 local function isInBrawl()
     local tag = player:FindFirstChild("InBrawl")
     return tag and tag.Value == true
 end
 
+-- Auto Win Brawl (equipa puño y ataca)
 local function autoWinBrawl()
     while getgenv().autoWinBrawl do
         if isInBrawl() then
@@ -85,6 +81,7 @@ local function autoWinBrawl()
     end
 end
 
+-- Toggles dentro del folder
 autobrawlFolder:AddToggle("Auto Join Brawl", {flag = "auto_brawl"}, function(state)
     getgenv().autoBrawl = state
     if state then
