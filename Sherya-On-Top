@@ -22,7 +22,8 @@ local teleporttab = window:AddTab("Teleport")
 local calculatortab = window:AddTab("Calculator")
 local credittab = window:AddTab("Credits")
 
-local autoBrawlFolder = maintab:AddSection("Auto Brawl")
+-- ...existing code...
+local autobrawlFolder = maintab:AddFolder("Auto Brawls")
 
 getgenv().autoBrawl = false
 getgenv().autoWinBrawl = false
@@ -62,12 +63,13 @@ local function equipFist()
     end
 end
 
--- Auto Win Brawl (teletransporta y ataca a otros jugadores)
+-- Detecta si estás en Brawl
 local function isInBrawl()
     local tag = player:FindFirstChild("InBrawl")
     return tag and tag.Value == true
 end
 
+-- Auto Win Brawl (equipa puño y ataca)
 local function autoWinBrawl()
     while getgenv().autoWinBrawl do
         if isInBrawl() then
@@ -85,16 +87,17 @@ local function autoWinBrawl()
     end
 end
 
-autoBrawlFolder:AddToggle("Auto Join Brawl", {flag = "auto_brawl"}, function(state)
+autobrawlFolder:AddToggle("Auto Join Brawl", {flag = "auto_brawl"}, function(state)
     getgenv().autoBrawl = state
     if state then
         autoJoinBrawlAt4Sec()
     end
 end)
 
-autoBrawlFolder:AddToggle("Auto Win Brawl", {flag = "auto_win_brawl"}, function(state)
+autobrawlFolder:AddToggle("Auto Win Brawl", {flag = "auto_win_brawl"}, function(state)
     getgenv().autoWinBrawl = state
     if state then
         autoWinBrawl()
     end
 end)
+-- ...existing code...
