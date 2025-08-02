@@ -24,11 +24,11 @@ local InterfaceManager = loadstring(game:HttpGetAsync("https://raw.githubusercon
 
 local Window = Library:CreateWindow{
     Title = "Sherya Script",
-    SubTitle = "Titan Simulator",
+    SubTitle = "By Isabella",
     TabWidth = 160,
-    Size = UDim2.fromOffset(660, 660),
+    Size = UDim2.fromOffset(400, 400),
     Acrylic = true,
-    Theme = "Dark", -- Puedes cambiar a "Light" si prefieres
+    Theme = "Amethyst Dark", -- Puedes cambiar a "Light" si prefieres
     MinimizeKey = Enum.KeyCode.RightControl
 }
 
@@ -481,15 +481,3 @@ Library:Notify{
     Content = "El script ha sido cargado.",
     Duration = 8
 }
-
--- Configuración de SaveManager e InterfaceManager
-SaveManager:SetLibrary(Library)
-InterfaceManager:SetLibrary(Library)
-SaveManager:IgnoreThemeSettings()
-SaveManager:SetIgnoreIndexes{}
-InterfaceManager:SetFolder("FluentTitanSimulator")
-SaveManager:SetFolder("FluentTitanSimulator/Configs")
-InterfaceManager:BuildInterfaceSection(Tabs.Misc)
-SaveManager:BuildConfigSection(Tabs.Misc)
-Window:SelectTab(1)
-SaveManager:LoadAutoloadConfig()
