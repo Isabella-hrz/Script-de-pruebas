@@ -7,6 +7,7 @@ local whitelist = {
     ["Alexqwq124"] = true,
     ["Cesar0_o1"] = true,
 }
+local player = game.Players.LocalPlayer
 if not whitelist[player.Name] then
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = "Acceso Denegado",
@@ -16,23 +17,21 @@ if not whitelist[player.Name] then
     return
 end
 
--- Carga la librería d-Ray
-local dRay = loadstring(game:HttpGet("https://raw.githubusercontent.com/darkzin999/d-ray/main/library.lua"))()
-
--- Ventana principal
-local window = dRay:CreateWindow("Sherya Script", Color3.fromRGB(200, 0, 255), Enum.KeyCode.RightControl)
+local DrRayLibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/AZYsGithub/DrRay-UI-Library/main/DrRay.lua"))()
+local window = DrRayLibrary:Load("Sherya Script", "Default")
 
 -- Tabs
-local mainTab = window:CreateTab("Main")
-local miscTab = window:CreateTab("Misc")
-local killerTab = window:CreateTab("Killer")
-local playersTab = window:CreateTab("Players")
-local creditsTab = window:CreateTab("Credits")
+local mainTab = DrRayLibrary.newTab("Principal", "ImageIdHere")
+local farmingTab = DrRayLibrary.newTab("Farming", "ImageIdHere")
+local rebirthTab = DrRayLibrary.newTab("Rebirths", "ImageIdHere")
+local killerTab = DrRayLibrary.newTab("Killer", "ImageIdHere")
+local playersTab = DrRayLibrary.newTab("Players", "ImageIdHere")
+local creditsTab = DrRayLibrary.newTab("Créditos", "ImageIdHere")
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
--- Funciones de herramientas
+-- Función para equipar herramientas
 local function equipTool(toolName)
     local character = player.Character or player.CharacterAdded:Wait()
     local backpack = player:WaitForChild("Backpack")
@@ -45,7 +44,7 @@ end
 
 -- Auto Punch
 local autoPunch = false
-mainTab:AddToggle("Auto Punch", false, function(state)
+mainTab.newToggle("Auto Punch", "Activa el auto punch", false, function(state)
     autoPunch = state
     if autoPunch then equipTool("Punch") end
     task.spawn(function()
@@ -66,7 +65,7 @@ end)
 
 -- Auto Orb
 local autoOrb = false
-mainTab:AddToggle("Auto Orb", false, function(state)
+mainTab.newToggle("Auto Orb", "Recolecta orbes automáticamente", false, function(state)
     autoOrb = state
     task.spawn(function()
         while autoOrb do
@@ -82,7 +81,7 @@ end)
 
 -- Auto Demon Sword
 local autoDemonSword = false
-mainTab:AddToggle("Auto (Demon Sword)", false, function(state)
+mainTab.newToggle("Auto (Demon Sword)", "Auto ataca con Demon Sword", false, function(state)
     autoDemonSword = state
     if autoDemonSword then equipTool("Demon Sword") end
     task.spawn(function()
@@ -105,7 +104,7 @@ end)
 
 -- Auto Speed
 local speedValue = 16
-miscTab:AddBox("Auto Speed", function(text)
+mainTab.newInput("Auto Speed", "Cambia la velocidad", function(text)
     speedValue = tonumber(text) or 16
     if player.Character and player.Character:FindFirstChild("Humanoid") then
         player.Character.Humanoid.WalkSpeed = speedValue
@@ -114,7 +113,7 @@ end)
 
 local autoSpeedEnabled = false
 local autoSpeedConnection
-miscTab:AddToggle("Auto Set Speed", false, function(bool)
+mainTab.newToggle("Auto Set Speed", "Mantiene la velocidad", false, function(bool)
     autoSpeedEnabled = bool
     if autoSpeedEnabled then
         if player.Character and player.Character:FindFirstChild("Humanoid") then
@@ -134,7 +133,7 @@ end)
 
 -- Infinite Jump
 local infiniteJumpConnection
-miscTab:AddToggle("Infinite Jump", false, function(bool)
+mainTab.newToggle("Infinite Jump", "Salto infinito", false, function(bool)
     if bool then
         infiniteJumpConnection = game:GetService("UserInputService").JumpRequest:Connect(function()
             if player.Character and player.Character:FindFirstChild("Humanoid") then
@@ -148,7 +147,7 @@ end)
 
 -- No Clip
 local noclipLoop
-miscTab:AddToggle("No Clip", false, function(bool)
+mainTab.newToggle("No Clip", "Atravesar paredes", false, function(bool)
     if bool then
         noclipLoop = game:GetService("RunService").Stepped:Connect(function()
             for _, child in pairs(player.Character:GetDescendants()) do
@@ -168,12 +167,12 @@ miscTab:AddToggle("No Clip", false, function(bool)
 end)
 
 -- Chat Espía
-miscTab:AddButton("Chat Espía", function()
+mainTab.newButton("Chat Espía", "Activa el chat espía", function()
     loadstring(game:HttpGet("https://pastebin.com/raw/Vv9Yw3Uw"))()
 end)
 
 -- Anti AFK
-miscTab:AddButton("Anti AFK", function()
+mainTab.newButton("Anti AFK", "Evita ser kickeado por inactividad", function()
     local VirtualUser = game:GetService("VirtualUser")
     player.Idled:Connect(function()
         VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
@@ -189,7 +188,7 @@ end)
 
 -- Auto Kill (Punch)
 local autoPunchAll = false
-killerTab:AddToggle("Auto Kill (Punch)", false, function(state)
+killerTab.newToggle("Auto Kill (Punch)", "Golpea a todos automáticamente", false, function(state)
     autoPunchAll = state
     task.spawn(function()
         while autoPunchAll do
@@ -217,48 +216,9 @@ killerTab:AddToggle("Auto Kill (Punch)", false, function(state)
     end)
 end)
 
--- Auto Kill (Pisotear)
-local autoStomp = false
-local stompToolName = "Stomp"
-local function equipStomp()
-    local character = player.Character or player.CharacterAdded:Wait()
-    local backpack = player:WaitForChild("Backpack")
-    if character:FindFirstChildOfClass("Tool") and character:FindFirstChildOfClass("Tool").Name == stompToolName then
-        return
-    end
-    local stompTool = backpack:FindFirstChild(stompToolName)
-    if stompTool then
-        stompTool.Parent = character
-    end
-end
-killerTab:AddToggle("Auto Kill (Pisotear)", false, function(state)
-    autoStomp = state
-    task.spawn(function()
-        while autoStomp do
-            pcall(function()
-                equipStomp()
-                local character = player.Character
-                local root = character and character:FindFirstChild("HumanoidRootPart")
-                local tool = character and character:FindFirstChild(stompToolName)
-                if tool and root then
-                    for _, otherPlayer in pairs(Players:GetPlayers()) do
-                        if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") and otherPlayer.Character:FindFirstChild("Humanoid") and otherPlayer.Character.Humanoid.Health > 0 then
-                            local targetRoot = otherPlayer.Character.HumanoidRootPart
-                            root.CFrame = targetRoot.CFrame + Vector3.new(0, 2, 0)
-                            tool:Activate()
-                            task.wait(0.2)
-                        end
-                    end
-                end
-            end)
-            task.wait(0.5)
-        end
-    end)
-end)
-
 -- Auto Kill (Demon Sword)
 local autoKill = false
-killerTab:AddToggle("Auto Kill (Demon Sword)", false, function(state)
+killerTab.newToggle("Auto Kill (Demon Sword)", "Ataca a todos con Demon Sword", false, function(state)
     autoKill = state
     if autoKill then equipTool("Demon Sword") end
     task.spawn(function()
@@ -293,12 +253,12 @@ end)
 -- Teleport a jugadores
 for _, p in ipairs(Players:GetPlayers()) do
     if p ~= player then
-        playersTab:AddButton("Teleport " .. p.Name, function()
+        playersTab.newButton("Teleport " .. p.Name, "Teletransporta a " .. p.Name, function()
             if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
                 local myChar = player.Character
                 if myChar and myChar:FindFirstChild("HumanoidRootPart") then
                     myChar.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
-                    dRay:Notify("Teletransportado a " .. p.Name)
+                    DrRayLibrary:Notify("Teletransportado a " .. p.Name)
                 end
             end
         end)
@@ -306,15 +266,15 @@ for _, p in ipairs(Players:GetPlayers()) do
 end
 
 -- Créditos
-creditsTab:AddLabel("╭──────────────────────────╮")
-creditsTab:AddLabel("   Script hecho por Isabella")
-creditsTab:AddLabel("╰──────────────────────────╯")
-creditsTab:AddLabel("User de Roblox: MissSherya")
-creditsTab:AddLabel("Instagram: Sherya_Luck")
-creditsTab:AddLabel("TikTok: Sherya6000")
-creditsTab:AddLabel("Discord: isabella_hrz")
-creditsTab:AddLabel("Gracias por usar el script ")
-creditsTab:AddLabel("Recomienda el script para hacer mas actualizaciones")
-creditsTab:AddLabel("Hago peticiones de otros juegos")
-creditsTab:AddLabel("Diviertete amiguito")
-creditsTab:AddLabel("Cost 3000 robux, Acepto transferencias o tarjetas de google play")
+creditsTab.newLabel("╭──────────────────────────╮")
+creditsTab.newLabel("   Script hecho por Isabella")
+creditsTab.newLabel("╰──────────────────────────╯")
+creditsTab.newLabel("User de Roblox: MissSherya")
+creditsTab.newLabel("Instagram: Sherya_Luck")
+creditsTab.newLabel("TikTok: Sherya6000")
+creditsTab.newLabel("Discord: isabella_hrz")
+creditsTab.newLabel("Gracias por usar el script")
+creditsTab.newLabel("Recomienda el script para hacer mas actualizaciones")
+creditsTab.newLabel("Hago peticiones de otros juegos")
+creditsTab.newLabel("Diviertete amiguito")
+creditsTab.newLabel("Cost 3000 robux, Acepto transferencias o tarjetas de google play")
