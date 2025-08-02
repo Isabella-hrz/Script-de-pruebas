@@ -22,40 +22,14 @@ local teleporttab = window:AddTab("Teleport")
 local calculatortab = window:AddTab("Calculator")
 local credittab = window:AddTab("Credits")
 
-local autoBrawlFolder = maintab:AddFolder(" Auto Brawl")
+local autoBrawlFolder = maintab:AddFolder("  Auto Brawls")
+local autoGymFolder = maintab:AddFolder("  Auto Gyms")
+local autoRockFolder = maintab:AddFolder("  Auto Rocks")
+local autoRebirthFolder = maintab:AddFolder("  Auto Rebirth")
+local autoEquipFolder = maintab:AddFolder("  Auto Equip Tools")
 
-local autoBrawl = false
-
-autoBrawlFolder:AddSwitch("Auto Join Brawl", function(state)
-    autoBrawl = state
-    getgenv().autoBrawl = state
-
-    if state then
-        task.spawn(function()
-            while autoBrawl do
-                task.wait(1)
-                pcall(function()
-                    local gui = player:FindFirstChild("PlayerGui")
-                    if not gui then return end
-
-                    -- Buscar ventana de invitación al brawl
-                    local brawlPrompt = gui:FindFirstChild("BrawlJoinGui") or gui:FindFirstChildWhichIsA("ScreenGui", true)
-
-                    if brawlPrompt then
-                        local botonSi = brawlPrompt:FindFirstChild("Yes") or brawlPrompt:FindFirstChildWhichIsA("TextButton", true)
-                        local textoTiempo = brawlPrompt:FindFirstChild("Time") or brawlPrompt:FindFirstChildWhichIsA("TextLabel", true)
-
-                        if botonSi and textoTiempo and botonSi.Visible and textoTiempo.Visible then
-                            local segundos = tonumber(textoTiempo.Text:match("%d+"))
-                            if segundos and segundos <= 4 then
-                                firesignal(botonSi.MouseButton1Click)
-                                warn("✅ Auto Brawl: Te uniste automáticamente con " .. segundos .. "s restantes")
-                                task.wait(10)
-                            end
-                        end
-                    end
-                end)
-            end
-        end)
-    end
-end)
+local misc1Folder = misctab:AddFolder("  Misc 1")
+local misc2Folder = misctab:AddFolder("  Misc 2")
+local misc3Folder = misctab:AddFolder("  Misc 3")
+local misc4Folder = misctab:AddFolder("  Misc 4")
+local misc5Folder = misctab:AddFolder("  Misc 5")
