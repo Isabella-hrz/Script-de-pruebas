@@ -15,14 +15,14 @@ local maintab = window:AddTab("Main")
 local farmtab = window:AddTab("Farm")
 local farmmtab = window:AddTab("Farm++")
 local misctab = window:AddTab("Misc")
-local rebirthtab = window:AddTab("Rebirth")
+local rebirthtab = window:AddTab("Paid")
 local killertab = window:AddTab("Killer")
 local playertab = window:AddTab("Player")
 local teleporttab = window:AddTab("Teleport")
 local calculatortab = window:AddTab("Calculator")
 local credittab = window:AddTab("Credits")
 
-local autoBrawlFolder = maintab:AddFolder("Auto Brawl")
+local autoBrawlFolder = maintab:AddFolder(" Auto Brawl")
 
 getgenv().autoBrawl = false
 getgenv().autoWinBrawl = false
