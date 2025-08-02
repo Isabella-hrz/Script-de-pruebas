@@ -1,4 +1,3 @@
--- WHITELIST
 local whitelist = {
     ["MissSherya"] = true,
     ["luis_109170"] = true,
@@ -7,8 +6,10 @@ local whitelist = {
     ["Alexqwq124"] = true,
     ["Cesar0_o1"] = true,
 }
-local player = game.Players.LocalPlayer
-if not whitelist[player.Name] then
+
+local localPlayer = game.Players.LocalPlayer
+
+if not whitelist[localPlayer.Name] then
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = "Acceso Denegado",
         Text = "No estás autorizado para usar este script.",
@@ -17,261 +18,431 @@ if not whitelist[player.Name] then
     return
 end
 
-local DrRayLibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/AZYsGithub/DrRay-UI-Library/main/DrRay.lua"))()
-local window = DrRayLibrary:Load("Sherya Script", "Default")
+local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/CenteredSniper/Fluent/main/source.lua"))()
+local themeColor = Color3.fromRGB(255, 0, 255) -- Morado fosforescente
 
--- Tabs
-local mainTab = DrRayLibrary.newTab("Principal", "ImageIdHere")
-local miscTab = DrRayLibrary.newTab("Misc", "ImageIdHere")
-local killerTab = DrRayLibrary.newTab("Killer", "ImageIdHere")
-local playersTab = DrRayLibrary.newTab("Players", "ImageIdHere")
-local creditsTab = DrRayLibrary.newTab("Créditos", "ImageIdHere")
+local Window = Fluent:CreateWindow({
+    Title = "Sherya Script",
+    SubTitle = "Titan Simulator",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(660, 660),
+    Acrylic = true,
+    Theme = {
+        Main = themeColor,
+        Accent = themeColor,
+        Outline = Color3.fromRGB(200, 0, 255),
+    }
+})
+
+local mainTab = Window:AddTab({ Title = "Main", Icon = "rbxassetid://7734053499" })
+local miscTab = Window:AddTab({ Title = "Misc", Icon = "rbxassetid://7734053499" })
+local killerTab = Window:AddTab({ Title = "Killer", Icon = "rbxassetid://7734053499" })
+local playersTab = Window:AddTab({ Title = "Players", Icon = "rbxassetid://7734053499" })
+local creditsTab = Window:AddTab({ Title = "Credits", Icon = "rbxassetid://7734053499" })
 
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 local player = Players.LocalPlayer
 
--- Función para equipar herramientas
-local function equipTool(toolName)
-    local character = player.Character or player.CharacterAdded:Wait()
+local autoPunch = false
+
+local function equipPunch()
     local backpack = player:WaitForChild("Backpack")
-    local tool = backpack:FindFirstChild(toolName) or character:FindFirstChild(toolName)
+    local character = player.Character or player.CharacterAdded:Wait()
+    local tool = backpack:FindFirstChild("Punch") or character:FindFirstChild("Punch")
     if tool and tool.Parent ~= character then
         tool.Parent = character
         task.wait(0.2)
     end
 end
 
--- Auto Punch
-local autoPunch = false
-mainTab.newToggle("Auto Punch", "Activa el auto punch", false, function(state)
-    autoPunch = state
-    if autoPunch then equipTool("Punch") end
-    task.spawn(function()
-        while autoPunch do
-            pcall(function()
-                local character = player.Character or player.CharacterAdded:Wait()
-                local tool = character:FindFirstChild("Punch")
-                if tool then
-                    tool:Activate()
-                else
-                    equipTool("Punch")
-                end
-            end)
-            task.wait(0.1)
-        end
-    end)
-end)
-
--- Auto Orb
-local autoOrb = false
-mainTab.newToggle("Auto Orb", "Recolecta orbes automáticamente", false, function(state)
-    autoOrb = state
-    task.spawn(function()
-        while autoOrb do
-            for _, v in pairs(workspace:GetChildren()) do
-                if v.Name == "Drop" and v:IsA("BasePart") then
-                    v.CFrame = player.Character.HumanoidRootPart.CFrame
-                end
-            end
-            task.wait(1)
-        end
-    end)
-end)
-
--- Auto Demon Sword
-local autoDemonSword = false
-mainTab.newToggle("Auto (Demon Sword)", "Auto ataca con Demon Sword", false, function(state)
-    autoDemonSword = state
-    if autoDemonSword then equipTool("Demon Sword") end
-    task.spawn(function()
-        while autoDemonSword do
-            pcall(function()
-                local character = player.Character or player.CharacterAdded:Wait()
-                local tool = character:FindFirstChild("Demon Sword")
-                if not tool then
-                    equipTool("Demon Sword")
-                    tool = character:FindFirstChild("Demon Sword")
-                end
-                if tool then
-                    tool:Activate()
-                end
-            end)
-            task.wait(0.15)
-        end
-    end)
-end)
-
--- Auto Speed
-local speedValue = 16
-miscTab.newInput("Auto Speed", "Cambia la velocidad", function(text)
-    speedValue = tonumber(text) or 16
-    if player.Character and player.Character:FindFirstChild("Humanoid") then
-        player.Character.Humanoid.WalkSpeed = speedValue
-    end
-end)
-
-local autoSpeedEnabled = false
-local autoSpeedConnection
-miscTab.newToggle("Auto Set Speed", "Mantiene la velocidad", false, function(bool)
-    autoSpeedEnabled = bool
-    if autoSpeedEnabled then
-        if player.Character and player.Character:FindFirstChild("Humanoid") then
-            player.Character.Humanoid.WalkSpeed = speedValue
-        end
-        if autoSpeedConnection then autoSpeedConnection:Disconnect() end
-        autoSpeedConnection = player.CharacterAdded:Connect(function(character)
-            local humanoid = character:WaitForChild("Humanoid")
-            if humanoid then
-                humanoid.WalkSpeed = speedValue
-            end
-        end)
-    else
-        if autoSpeedConnection then autoSpeedConnection:Disconnect() autoSpeedConnection = nil end
-    end
-end)
-
--- Infinite Jump
-local infiniteJumpConnection
-miscTab.newToggle("Infinite Jump", "Salto infinito", false, function(bool)
-    if bool then
-        infiniteJumpConnection = game:GetService("UserInputService").JumpRequest:Connect(function()
-            if player.Character and player.Character:FindFirstChild("Humanoid") then
-                player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-            end
-        end)
-    else
-        if infiniteJumpConnection then infiniteJumpConnection:Disconnect() infiniteJumpConnection = nil end
-    end
-end)
-
--- No Clip
-local noclipLoop
-miscTab.newToggle("No Clip", "Atravesar paredes", false, function(bool)
-    if bool then
-        noclipLoop = game:GetService("RunService").Stepped:Connect(function()
-            for _, child in pairs(player.Character:GetDescendants()) do
-                if child:IsA("BasePart") and child.CanCollide == true then
-                    child.CanCollide = false
-                end
-            end
-        end)
-    else
-        if noclipLoop then noclipLoop:Disconnect() noclipLoop = nil end
-        for _, child in pairs(player.Character:GetDescendants()) do
-            if child:IsA("BasePart") then
-                child.CanCollide = true
-            end
-        end
-    end
-end)
-
--- Chat Espía
-miscTab.newButton("Chat Espía", "Activa el chat espía", function()
-    loadstring(game:HttpGet("https://pastebin.com/raw/Vv9Yw3Uw"))()
-end)
-
--- Anti AFK
-miscTab.newButton("Anti AFK", "Evita ser kickeado por inactividad", function()
-    local VirtualUser = game:GetService("VirtualUser")
-    player.Idled:Connect(function()
-        VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+player.CharacterAdded:Connect(function()
+    if autoPunch then
         task.wait(1)
-        VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-    end)
-    game.StarterGui:SetCore("SendNotification", {
-        Title = "Anti-AFK",
-        Text = "Activado correctamente",
-        Duration = 5
-    })
+        equipPunch()
+    end
 end)
 
--- Auto Kill (Punch)
-local autoPunchAll = false
-killerTab.newToggle("Auto Kill (Punch)", "Golpea a todos automáticamente", false, function(state)
-    autoPunchAll = state
-    task.spawn(function()
-        while autoPunchAll do
-            pcall(function()
-                local backpack = player:WaitForChild("Backpack")
-                local character = player.Character or player.CharacterAdded:Wait()
-                local hrp = character:FindFirstChild("HumanoidRootPart")
-                local tool = backpack:FindFirstChild("Punch") or character:FindFirstChild("Punch")
-                if tool and tool.Parent ~= character then
-                    tool.Parent = character
-                end
-                for _, otherPlayer in ipairs(Players:GetPlayers()) do
-                    if not autoPunchAll then break end
-                    if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                        hrp.CFrame = otherPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 2, 0)
-                        if tool and tool.Activate then
-                            tool:Activate()
-                        end
-                        task.wait(1.2)
-                    end
-                end
-            end)
-            task.wait(1)
+mainTab:AddToggle({
+    Title = "Auto Punch",
+    Default = false,
+    Callback = function(state)
+        autoPunch = state
+        if autoPunch then
+            equipPunch()
         end
-    end)
-end)
-
--- Auto Kill (Demon Sword)
-local autoKill = false
-killerTab.newToggle("Auto Kill (Demon Sword)", "Ataca a todos con Demon Sword", false, function(state)
-    autoKill = state
-    if autoKill then equipTool("Demon Sword") end
-    task.spawn(function()
-        while autoKill do
-            pcall(function()
-                local lp = player
-                local character = lp.Character or lp.CharacterAdded:Wait()
-                local humanoidRoot = character:FindFirstChild("HumanoidRootPart")
-                local tool = character:FindFirstChild("Demon Sword") or lp.Backpack:FindFirstChild("Demon Sword")
-                if tool and tool.Parent ~= character then
-                    tool.Parent = character
-                    task.wait(0.2)
-                end
-                if not character:FindFirstChild("Demon Sword") then return end
-                for _, p in ipairs(Players:GetPlayers()) do
-                    if p ~= lp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
-                        local enemyHRP = p.Character.HumanoidRootPart
-                        humanoidRoot.CFrame = enemyHRP.CFrame * CFrame.new(0, 0, 2)
-                        local sword = character:FindFirstChild("Demon Sword")
-                        if sword then
-                            sword:Activate()
-                        end
-                        task.wait(0.3)
+        task.spawn(function()
+            while autoPunch do
+                pcall(function()
+                    local character = player.Character or player.CharacterAdded:Wait()
+                    local tool = character:FindFirstChild("Punch")
+                    if tool then
+                        tool:Activate()
+                    else
+                        equipPunch()
                     end
-                end
-            end)
-            task.wait(1)
-        end
-    end)
-end)
-
--- Teleport a jugadores
-for _, p in ipairs(Players:GetPlayers()) do
-    if p ~= player then
-        playersTab.newButton("Teleport " .. p.Name, "Teletransporta a " .. p.Name, function()
-            if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                local myChar = player.Character
-                if myChar and myChar:FindFirstChild("HumanoidRootPart") then
-                    myChar.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
-                    DrRayLibrary:Notify("Teletransportado a " .. p.Name)
-                end
+                end)
+                task.wait(0.1)
             end
         end)
+    end
+})
+
+local autoOrb = false
+local orbGuiCreado = false
+
+mainTab:AddToggle({
+    Title = "Auto Orb",
+    Default = false,
+    Callback = function(state)
+        autoOrb = state
+        if not orbGuiCreado then
+            local screenGui = Instance.new("ScreenGui")
+            screenGui.Name = "Sherya"
+            screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+            orbGuiCreado = true
+        end
+        task.spawn(function()
+            while autoOrb do
+                for _, v in pairs(workspace:GetChildren()) do
+                    if v.Name == "Drop" and v:IsA("BasePart") then
+                        v.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
+                    end
+                end
+                task.wait(1)
+            end
+        end)
+    end
+})
+
+local autoDemonSword = false
+
+local function equipDemonSword()
+    local character = player.Character or player.CharacterAdded:Wait()
+    local backpack = player:WaitForChild("Backpack")
+    local tool = backpack:FindFirstChild("Demon Sword") or character:FindFirstChild("Demon Sword")
+    if tool and tool.Parent ~= character then
+        tool.Parent = character
+        task.wait(0.2)
     end
 end
 
--- Créditos
-creditsTab.newLabel("Script hecho por Isabella")
-creditsTab.newLabel("User de Roblox: MissSherya")
-creditsTab.newLabel("Instagram: Sherya_Luck")
-creditsTab.newLabel("TikTok: Sherya6000")
-creditsTab.newLabel("Discord: isabella_hrz")
-creditsTab.newLabel("Gracias por usar el script")
-creditsTab.newLabel("Recomienda el script para hacer mas actualizaciones")
-creditsTab.newLabel("Hago peticiones de otros juegos")
-creditsTab.newLabel("Diviertete amiguito")
-creditsTab.newLabel("Cost 3000 robux, Acepto transferencias o tarjetas de google play")
+player.CharacterAdded:Connect(function()
+    if autoDemonSword then
+        task.wait(1)
+        equipDemonSword()
+    end
+end)
+
+mainTab:AddToggle({
+    Title = "Auto (Demon Sword)",
+    Default = false,
+    Callback = function(state)
+        autoDemonSword = state
+        if autoDemonSword then
+            equipDemonSword()
+        end
+        task.spawn(function()
+            while autoDemonSword do
+                pcall(function()
+                    local character = player.Character or player.CharacterAdded:Wait()
+                    local tool = character:FindFirstChild("Demon Sword")
+                    if not tool then
+                        equipDemonSword()
+                        tool = character:FindFirstChild("Demon Sword")
+                    end
+                    if tool then
+                        tool:Activate()
+                    end
+                end)
+                task.wait(0.15)
+            end
+        end)
+    end
+})
+
+local speedValue = 16
+miscTab:AddInput({
+    Title = "Auto Speed",
+    Placeholder = "16",
+    Numeric = true,
+    Callback = function(text)
+        speedValue = tonumber(text) or 16
+        if player and player.Character and player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid.WalkSpeed = speedValue
+        end
+    end
+})
+
+local autoSpeedEnabled = false
+local autoSpeedConnection
+
+miscTab:AddToggle({
+    Title = "Auto Set Speed",
+    Default = false,
+    Callback = function(bool)
+        autoSpeedEnabled = bool
+        if autoSpeedEnabled then
+            if player and player.Character and player.Character:FindFirstChild("Humanoid") then
+                player.Character.Humanoid.WalkSpeed = speedValue
+            end
+            if autoSpeedConnection then
+                autoSpeedConnection:Disconnect()
+            end
+            autoSpeedConnection = player.CharacterAdded:Connect(function(character)
+                local humanoid = character:WaitForChild("Humanoid")
+                if humanoid then
+                    humanoid.WalkSpeed = speedValue
+                end
+            end)
+        else
+            if autoSpeedConnection then
+                autoSpeedConnection:Disconnect()
+                autoSpeedConnection = nil
+            end
+        end
+    end
+})
+
+local infiniteJumpConnection
+miscTab:AddToggle({
+    Title = "Infinite Jump",
+    Default = false,
+    Callback = function(bool)
+        if bool then
+            infiniteJumpConnection = game:GetService("UserInputService").JumpRequest:Connect(function()
+                if player.Character and player.Character:FindFirstChild("Humanoid") then
+                    player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                end
+            end)
+        else
+            if infiniteJumpConnection then
+                infiniteJumpConnection:Disconnect()
+                infiniteJumpConnection = nil
+            end
+        end
+    end
+})
+
+local noclipLoop
+miscTab:AddToggle({
+    Title = "No Clip",
+    Default = false,
+    Callback = function(bool)
+        if bool then
+            noclipLoop = game:GetService("RunService").Stepped:Connect(function()
+                for _, child in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+                    if child:IsA("BasePart") and child.CanCollide == true then
+                        child.CanCollide = false
+                    end
+                end
+            end)
+        else
+            if noclipLoop then
+                noclipLoop:Disconnect()
+                noclipLoop = nil
+            end
+            for _, child in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+                if child:IsA("BasePart") then
+                    child.CanCollide = true
+                end
+            end
+        end
+    end
+})
+
+miscTab:AddButton({
+    Title = "Chat Espía",
+    Callback = function()
+        loadstring(game:HttpGet("https://pastebin.com/raw/Vv9Yw3Uw"))()
+    end
+})
+
+miscTab:AddButton({
+    Title = "Anti AFK",
+    Callback = function()
+        local VirtualUser = game:GetService("VirtualUser")
+        player.Idled:Connect(function()
+            VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+            task.wait(1)
+            VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        end)
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "Anti-AFK",
+            Text = "Activado correctamente",
+            Duration = 5
+        })
+    end
+})
+
+local autoStomp = false
+local stompToolName = "Stomp"
+
+local function equipStomp()
+    local character = player.Character or player.CharacterAdded:Wait()
+    local backpack = player:WaitForChild("Backpack")
+    if character:FindFirstChildOfClass("Tool") and character:FindFirstChildOfClass("Tool").Name == stompToolName then
+        return
+    end
+    local stompTool = backpack:FindFirstChild(stompToolName)
+    if stompTool then
+        stompTool.Parent = character
+    end
+end
+
+player.CharacterAdded:Connect(function()
+    if autoStomp then
+        task.wait(1)
+        equipStomp()
+    end
+end)
+
+local autoPunchAll = false
+
+killerTab:AddToggle({
+    Title = "Auto Kill (Punch)",
+    Default = false,
+    Callback = function(state)
+        autoPunchAll = state
+        task.spawn(function()
+            while autoPunchAll do
+                pcall(function()
+                    local player = game.Players.LocalPlayer
+                    local backpack = player:WaitForChild("Backpack")
+                    local character = player.Character or player.CharacterAdded:Wait()
+                    local hrp = character:FindFirstChild("HumanoidRootPart")
+                    local tool = backpack:FindFirstChild("Punch") or character:FindFirstChild("Punch")
+                    if tool and tool.Parent ~= character then
+                        tool.Parent = character
+                    end
+                    for _, otherPlayer in ipairs(game.Players:GetPlayers()) do
+                        if not autoPunchAll then break end
+                        if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                            hrp.CFrame = otherPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 2, 0)
+                            if tool and tool.Activate then
+                                tool:Activate()
+                            end
+                            task.wait(1.2)
+                        end
+                    end
+                end)
+                task.wait(1)
+            end
+        end)
+    end
+})
+
+killerTab:AddToggle({
+    Title = "Auto Kill (Pisotear)",
+    Default = false,
+    Callback = function(state)
+        autoStomp = state
+        task.spawn(function()
+            while autoStomp do
+                pcall(function()
+                    equipStomp()
+                    local character = player.Character
+                    local root = character and character:FindFirstChild("HumanoidRootPart")
+                    local tool = character and character:FindFirstChild(stompToolName)
+                    if tool and root then
+                        for _, otherPlayer in pairs(Players:GetPlayers()) do
+                            if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") and otherPlayer.Character:FindFirstChild("Humanoid") and otherPlayer.Character.Humanoid.Health > 0 then
+                                local targetRoot = otherPlayer.Character.HumanoidRootPart
+                                root.CFrame = targetRoot.CFrame + Vector3.new(0, 2, 0)
+                                tool:Activate()
+                                task.wait(0.2)
+                            end
+                        end
+                    end
+                end)
+                task.wait(0.5)
+            end
+        end)
+    end
+})
+
+local autoKill = false
+
+killerTab:AddToggle({
+    Title = "Auto Kill (Demon Sword)",
+    Default = false,
+    Callback = function(state)
+        autoKill = state
+        if autoKill then
+            local character = player.Character or player.CharacterAdded:Wait()
+            local backpack = player:WaitForChild("Backpack")
+            local tool = backpack:FindFirstChild("Demon Sword") or character:FindFirstChild("Demon Sword")
+            if tool and tool.Parent ~= character then
+                tool.Parent = character
+                task.wait(0.2)
+            end
+        end
+        task.spawn(function()
+            while autoKill do
+                pcall(function()
+                    local lp = game.Players.LocalPlayer
+                    local character = lp.Character or lp.CharacterAdded:Wait()
+                    local humanoidRoot = character:FindFirstChild("HumanoidRootPart")
+                    local tool = character:FindFirstChild("Demon Sword") or lp.Backpack:FindFirstChild("Demon Sword")
+                    if tool and tool.Parent ~= character then
+                        tool.Parent = character
+                        task.wait(0.2)
+                    end
+                    if not character:FindFirstChild("Demon Sword") then return end
+                    for _, p in ipairs(game.Players:GetPlayers()) do
+                        if p ~= lp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
+                            local enemyHRP = p.Character.HumanoidRootPart
+                            humanoidRoot.CFrame = enemyHRP.CFrame * CFrame.new(0, 0, 2)
+                            local sword = character:FindFirstChild("Demon Sword")
+                            if sword then
+                                sword:Activate()
+                            end
+                            task.wait(0.3)
+                        end
+                    end
+                end)
+                task.wait(1)
+            end
+        end)
+    end
+})
+
+for _, p in ipairs(game.Players:GetPlayers()) do
+    if p ~= player then
+        playersTab:AddButton({
+            Title = "Teleport " .. p.Name,
+            Callback = function()
+                if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                    local myChar = player.Character
+                    if myChar and myChar:FindFirstChild("HumanoidRootPart") then
+                        myChar.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
+                        Window:Notify("Teletransportado a " .. p.Name)
+                    end
+                end
+            end
+        })
+    end
+end
+
+creditsTab:AddParagraph({
+    Title = "",
+    Content = [[
+╭──────────────────────────╮
+   Script hecho por Isabella
+╰──────────────────────────╯
+
+User de Roblox: MissSherya
+Instagram: Sherya_Luck
+TikTok: Sherya6000
+Discord: isabella_hrz
+
+Gracias por usar el script
+
+Recomienda el script para hacer mas actualizaciones
+Hago peticiones de otros juegos
+Diviertete amiguito
+Cost 3000 robux, Acepto transferencias o tarjetas de google play
+    ]]
+})
