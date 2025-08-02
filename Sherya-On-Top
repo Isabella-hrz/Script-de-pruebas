@@ -1,81 +1,100 @@
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/memejames/elerium-v2-ui-library/main/Library", true))()
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 local player = Players.LocalPlayer
 
-local libraryURL = "https://raw.githubusercontent.com/memejames/elerium-v2-ui-library/main/Library"
+local window = library:AddWindow("Sherya Script", {
+    main_color = Color3.fromRGB(200, 0, 255),
+    min_size = Vector2.new(660, 660),
+    can_resize = false,
+})
 
-local window -- Aquí guardamos la ventana creada
+local maintab = window:AddTab("Main")
+local farmtab = window:AddTab("Farm")
+local farmmtab = window:AddTab("Farm++")
+local misctab = window:AddTab("Misc")
+local rebirthtab = window:AddTab("Paid")
+local killertab = window:AddTab("Killer")
+local playertab = window:AddTab("Player")
+local teleporttab = window:AddTab("Teleport")
+local calculatortab = window:AddTab("Calculator")
+local credittab = window:AddTab("Credits")
 
--- Función para crear la ventana y el UI completo
-local function createUI()
-    if window then
-        -- Si ya existe, intentamos destruir para recrear
-        if window.ScreenGui and window.ScreenGui.Parent then
-            window.ScreenGui:Destroy()
+local autobrawlFolder = maintab:AddFolder(" Auto Brawls")
+
+getgenv().autoBrawl = false
+getgenv().autoWinBrawl = false
+
+local function autoJoinBrawlAt4Sec()
+    while getgenv().autoBrawl do
+        local brawlButton, timerLabel = nil, nil
+        for _, v in pairs(player.PlayerGui:GetDescendants()) do
+            if v:IsA("TextButton") and v.Text:lower():find("join brawl") then
+                brawlButton = v
+            end
+            if v:IsA("TextLabel") and v.Text:lower():find("brawl starting in") then
+                timerLabel = v
+            end
         end
-        window = nil
-    end
-
-    local library = loadstring(game:HttpGet(libraryURL))()
-
-    window = library:AddWindow("Sherya Script", {
-        main_color = Color3.fromRGB(200, 0, 255),
-        min_size = Vector2.new(660, 660),
-        can_resize = false,
-    })
-
-    local maintab = window:AddTab("Main")
-    local autobrawlFolder = maintab:AddFolder("Auto Brawls")
-
-    getgenv().autoBrawl = false
-    getgenv().autoWinBrawl = false
-
-    -- Ejemplo básico funciones
-    local function autoJoinExample()
-        while getgenv().autoBrawl do
-            print("Auto Join activo")
-            task.wait(1)
+        if brawlButton and timerLabel then
+            local seconds = tonumber(timerLabel.Text:match("(%d+)"))
+            if seconds and seconds == 4 then
+                pcall(function()
+                    brawlButton:Activate()
+                end)
+                wait(2)
+            end
         end
-    end
-
-    local function autoWinExample()
-        while getgenv().autoWinBrawl do
-            print("Auto Win activo")
-            task.wait(1)
-        end
-    end
-
-    autobrawlFolder:AddToggle("Auto Join Brawl", {flag = "auto_brawl"}, function(state)
-        getgenv().autoBrawl = state
-        if state then
-            task.spawn(autoJoinExample)
-        end
-    end)
-
-    autobrawlFolder:AddToggle("Auto Win Brawl", {flag = "auto_win_brawl"}, function(state)
-        getgenv().autoWinBrawl = state
-        if state then
-            task.spawn(autoWinExample)
-        end
-    end)
-
-    -- Protección de GUI para evitar que el juego la borre
-    if syn and syn.protect_gui and window.ScreenGui then
-        pcall(function()
-            syn.protect_gui(window.ScreenGui)
-        end)
+        task.wait(0.5)
     end
 end
 
--- Crear UI al inicio
-createUI()
-
--- Watcher para recrear la UI si la destruyen
-task.spawn(function()
-    while true do
-        task.wait(3)
-        if not window or not (window.ScreenGui and window.ScreenGui.Parent) then
-            print("GUI detectada como destruida, recreando UI...")
-            createUI()
+local function equipFist()
+    if player.Character and player.Character:FindFirstChildOfClass("Tool") then return end
+    for _, tool in ipairs(player.Backpack:GetChildren()) do
+        if tool.Name:lower():find("fist") then
+            player.Character.Humanoid:EquipTool(tool)
+            break
         end
+    end
+end
+
+local function isInBrawl()
+    local tag = player:FindFirstChild("InBrawl")
+    return tag and tag.Value == true
+end
+
+local function autoWinBrawl()
+    while getgenv().autoWinBrawl do
+        if isInBrawl() then
+            equipFist()
+            for _, plr in pairs(Players:GetPlayers()) do
+                if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                    pcall(function()
+                        player.Character.HumanoidRootPart.CFrame = plr.Character.HumanoidRootPart.CFrame + Vector3.new(0,2,0)
+                    end)
+                    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.One, false, game)
+                    task.wait(0.1)
+                    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.One, false, game)
+                end
+            end
+        end
+        task.wait(0.5)
+    end
+end
+
+autobrawlFolder:AddSwitch("Auto Join Brawl", {flag = "auto_brawl"}, function(state)
+    getgenv().autoBrawl = state
+    if state then
+        task.spawn(autoJoinBrawlAt4Sec)
+    end
+end)
+
+autobrawlFolder:AddSwitch("Auto Win Brawl", {flag = "auto_win_brawl"}, function(state)
+    getgenv().autoWinBrawl = state
+    if state then
+        task.spawn(autoWinBrawl)
     end
 end)
