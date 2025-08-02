@@ -22,8 +22,7 @@ local window = DrRayLibrary:Load("Sherya Script", "Default")
 
 -- Tabs
 local mainTab = DrRayLibrary.newTab("Principal", "ImageIdHere")
-local farmingTab = DrRayLibrary.newTab("Farming", "ImageIdHere")
-local rebirthTab = DrRayLibrary.newTab("Rebirths", "ImageIdHere")
+local miscTab = DrRayLibrary.newTab("Misc", "ImageIdHere")
 local killerTab = DrRayLibrary.newTab("Killer", "ImageIdHere")
 local playersTab = DrRayLibrary.newTab("Players", "ImageIdHere")
 local creditsTab = DrRayLibrary.newTab("Créditos", "ImageIdHere")
@@ -104,7 +103,7 @@ end)
 
 -- Auto Speed
 local speedValue = 16
-mainTab.newInput("Auto Speed", "Cambia la velocidad", function(text)
+miscTab.newInput("Auto Speed", "Cambia la velocidad", function(text)
     speedValue = tonumber(text) or 16
     if player.Character and player.Character:FindFirstChild("Humanoid") then
         player.Character.Humanoid.WalkSpeed = speedValue
@@ -113,7 +112,7 @@ end)
 
 local autoSpeedEnabled = false
 local autoSpeedConnection
-mainTab.newToggle("Auto Set Speed", "Mantiene la velocidad", false, function(bool)
+miscTab.newToggle("Auto Set Speed", "Mantiene la velocidad", false, function(bool)
     autoSpeedEnabled = bool
     if autoSpeedEnabled then
         if player.Character and player.Character:FindFirstChild("Humanoid") then
@@ -133,7 +132,7 @@ end)
 
 -- Infinite Jump
 local infiniteJumpConnection
-mainTab.newToggle("Infinite Jump", "Salto infinito", false, function(bool)
+miscTab.newToggle("Infinite Jump", "Salto infinito", false, function(bool)
     if bool then
         infiniteJumpConnection = game:GetService("UserInputService").JumpRequest:Connect(function()
             if player.Character and player.Character:FindFirstChild("Humanoid") then
@@ -147,7 +146,7 @@ end)
 
 -- No Clip
 local noclipLoop
-mainTab.newToggle("No Clip", "Atravesar paredes", false, function(bool)
+miscTab.newToggle("No Clip", "Atravesar paredes", false, function(bool)
     if bool then
         noclipLoop = game:GetService("RunService").Stepped:Connect(function()
             for _, child in pairs(player.Character:GetDescendants()) do
@@ -167,12 +166,12 @@ mainTab.newToggle("No Clip", "Atravesar paredes", false, function(bool)
 end)
 
 -- Chat Espía
-mainTab.newButton("Chat Espía", "Activa el chat espía", function()
+miscTab.newButton("Chat Espía", "Activa el chat espía", function()
     loadstring(game:HttpGet("https://pastebin.com/raw/Vv9Yw3Uw"))()
 end)
 
 -- Anti AFK
-mainTab.newButton("Anti AFK", "Evita ser kickeado por inactividad", function()
+miscTab.newButton("Anti AFK", "Evita ser kickeado por inactividad", function()
     local VirtualUser = game:GetService("VirtualUser")
     player.Idled:Connect(function()
         VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
@@ -266,9 +265,7 @@ for _, p in ipairs(Players:GetPlayers()) do
 end
 
 -- Créditos
-creditsTab.newLabel("╭──────────────────────────╮")
-creditsTab.newLabel("   Script hecho por Isabella")
-creditsTab.newLabel("╰──────────────────────────╯")
+creditsTab.newLabel("Script hecho por Isabella")
 creditsTab.newLabel("User de Roblox: MissSherya")
 creditsTab.newLabel("Instagram: Sherya_Luck")
 creditsTab.newLabel("TikTok: Sherya6000")
