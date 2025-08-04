@@ -7,13 +7,12 @@ local player = Players.LocalPlayer
 
 local window = library:AddWindow("Sherya Script", {
     main_color = Color3.fromRGB(200, 0, 255),
-    min_size = Vector2.new(440, 440),
+    min_size = Vector2.new(500, 500),
     can_resize = false,
 })
 
 local maintab = window:AddTab("Main")
 local farmtab = window:AddTab("Farm")
-local gymtab = window:AddTab("Gyms")
 local misctab = window:AddTab("Misc")
 local eggtab = window:AddTab("Eggs")
 local rebirthtab = window:AddTab("Paid")
