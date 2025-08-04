@@ -25,27 +25,26 @@ local credittab = window:AddTab("Credits")
 
 local autoBrawlFolder = maintab:AddFolder("  Auto Brawls")
 
-local autoBrawl = false
+local autoJoinBrawl = false
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local brawlEvent = ReplicatedStorage:WaitForChild("brawlEvent")
 
 autoBrawlFolder:AddSwitch("Auto Join Brawl", function(state)
-    autoBrawl = state
+    autoJoinBrawl = state
 
     task.spawn(function()
-        while autoBrawl do
+        while autoJoinBrawl do
             pcall(function()
-                local replicatedStorage = game:GetService("ReplicatedStorage")
-                local brawlEvent = replicatedStorage:WaitForChild("brawlEvent")
-                local brawlStatus = replicatedStorage:WaitForChild("BrawlStatus")
-
-                if brawlStatus and brawlStatus:IsA("StringValue") then
-                    local status = brawlStatus.Value:lower()
-                    if status:find("you have") and status:find("to join") then
-                        brawlEvent:FireServer("JoinBrawl")
-                        wait(12) -- evitar múltiples envíos durante la cuenta regresiva
+                local textLabel = workspace:FindFirstChild("Brawl") or workspace:FindFirstChildWhichIsA("TextLabel", true)
+                if textLabel and textLabel:IsA("TextLabel") then
+                    local text = textLabel.Text:lower()
+                    if string.find(text, "brawl starting") or string.find(text, "join the brawl") then
+                        brawlEvent:FireServer()
+                        task.wait(1) -- espera para evitar spam
                     end
                 end
             end)
-            wait(1)
+            task.wait(1)
         end
     end)
 end)
