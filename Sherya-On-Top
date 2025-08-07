@@ -42,7 +42,7 @@ local dropdown = Killing:AddDropdown("Select Pet", function(text)
 end)
 
 local Wild_Wizard = dropdown:Add("Wild Wizard")
-local Chaos_Sorcerers = dropdown:Add("Chaos Sorcerers")
+local Chaos_Sorcerers = dropdown:Add("powerful Monster")
 
 local switch = Killing:AddSwitch("Auto Kill", function(bool)
     _G.killAll = bool
