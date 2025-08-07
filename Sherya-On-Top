@@ -1,7 +1,7 @@
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/CAXAP26BKyCH/library/refs/heads/main/Uilibrary"))()
-local Window = Library:AddWindow("Sherya Script", {
-    main_color = Color3.fromRGB(200, 0, 255),
-    min_size = Vector2.new(660, 660),
+local Window = Library:AddWindow("Doca V1 (Server Booster Version)", {
+    main_color = Color3.fromRGB(255, 0, 0),
+    min_size = Vector2.new(500, 600),
     can_resize = true
 })
 
