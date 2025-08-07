@@ -1,418 +1,179 @@
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/memejames/elerium-v2-ui-library/main/Library", true))()
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local VirtualInputManager = game:GetService("VirtualInputManager")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local StarterPack = game:GetService("StarterPack")
 local player = Players.LocalPlayer
 
 local window = library:AddWindow("Sherya Script", {
-    main_color = Color3.fromRGB(200, 0, 255),
-    min_size = Vector2.new(660, 660),
-    can_resize = false,
+    main_color = Color3.fromRGB(255, 92, 153),
+    min_size = Vector2.new(400, 300),
+    toggle_key = Enum.KeyCode.RightControl,
+    can_resize = true,
 })
 
-local mainTab = window:AddTab("Main")
-local miscTab = window:AddTab("Misc")
 local killerTab = window:AddTab("Killer")
-local playersTab = window:AddTab("Players")
-local creditsTab = window:AddTab("Credits")
 
-local autoPunch = false
+-- 🔪 AutoKill Global
+killerTab:AddSwitch("AutoKill Global", function(state)
+    getgenv().AutoKillGlobal = state
 
--- Función para equipar la herramienta "Punch"
-local function equipPunch()
-    local backpack = player:WaitForChild("Backpack")
-    local character = player.Character or player.CharacterAdded:Wait()
-    local tool = backpack:FindFirstChild("Punch") or character:FindFirstChild("Punch")
-    if tool and tool.Parent ~= character then
-        tool.Parent = character
-        task.wait(0.2)
-    end
-end
+    if state then
+        print("☠️ AutoKill Global ACTIVADO")
 
--- Evento que detecta cuando el personaje reaparece para reequipo
-player.CharacterAdded:Connect(function()
-    if autoPunch then
-        task.wait(1) -- Espera que el personaje y mochila estén listos
-        equipPunch()
+        local function getHand()
+            local char = player.Character or player.CharacterAdded:Wait()
+            return char:FindFirstChild("RightHand") or char:FindFirstChild("Right Arm")
+        end
+
+        local hand
+        player.CharacterAdded:Connect(function()
+            task.wait(1)
+            hand = getHand()
+        end)
+
+        hand = getHand()
+
+        task.spawn(function()
+            while getgenv().AutoKillGlobal do
+                if not hand or not hand:IsDescendantOf(workspace) then
+                    hand = getHand()
+                end
+                if hand and hand:IsDescendantOf(workspace) then
+                    for _, other in pairs(Players:GetPlayers()) do
+                        if other ~= player and other.Character then
+                            local targetPart = other.Character:FindFirstChild("HumanoidRootPart")
+                            if targetPart and targetPart:IsDescendantOf(workspace) then
+                                pcall(function()
+                                    firetouchinterest(hand, targetPart, 0)
+                                    task.wait(0.05)
+                                    firetouchinterest(hand, targetPart, 1)
+                                end)
+                                task.wait(0.05)
+                            end
+                        end
+                    end
+                else
+                    task.wait(0.5)
+                end
+                task.wait(0.1)
+            end
+            print("🛑 AutoKill Global DESACTIVADO")
+        end)
+    else
+        print("🛑 AutoKill Global DESACTIVADO")
     end
 end)
 
-mainTab:AddSwitch("Auto Punch", function(state)
-    autoPunch = state
+-- 🍹 Auto Tropical Shake
+killerTab:AddSwitch("Auto Shake", function(state)
+    if state then
+        task.spawn(function()
+            while true do
+                local shake = player.Backpack:FindFirstChild("Tropical Shake")
+                if not shake then
+                    warn("✅ Ya no quedan Tropical Shakes en el inventario.")
+                    break
+                end
 
-    if autoPunch then
-        equipPunch()
+                warn("🕹 Encontrada Tropical Shakes:", shake, "- equipando...")
+                shake.Parent = player.Character
+                RunService.Heartbeat:Wait()
+
+                if shake.Activate then
+                    shake:Activate()
+                    warn("🍹 Activada Tropical Shakes:", shake)
+                elseif mouse1click then
+                    mouse1click()
+                    warn("🍹 mouse1click() sobre Tropical Shakes")
+                else
+                    warn("⚠️ No se pudo activar Tropical Shakes")
+                end
+
+                task.wait(0.1)
+            end
+        end)
+    end
+end)
+
+-- 🥚 Auto Protein Egg
+killerTab:AddSwitch("Auto Protein Egg", function(state)
+    _G.AutoProteinEgg = state
+    print("Auto Protein Egg " .. (_G.AutoProteinEgg and "ACTIVADO ✅" or "DESACTIVADO ❌"))
+
+    local character = player.Character or player.CharacterAdded:Wait()
+    local toolName = "Protein Egg"
+
+    local function restoreVisibility(tool)
+        for _, part in ipairs(tool:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.Transparency = 0
+                pcall(function() part.LocalTransparencyModifier = 0 end)
+            end
+        end
     end
 
-    task.spawn(function()
-        while autoPunch do
-            pcall(function()
-                local character = player.Character or player.CharacterAdded:Wait()
-                local tool = character:FindFirstChild("Punch")
+    local function findTool()
+        local tool = player.Backpack:FindFirstChild(toolName)
+        if tool then return tool end
+        tool = StarterPack:FindFirstChild(toolName)
+        if tool then return tool end
+        return ReplicatedStorage:FindFirstChild(toolName)
+    end
 
-                if tool then
-                    tool:Activate()
-                else
-                    -- Si no está equipada, intentar equipar
-                    equipPunch()
-                end
-            end)
+    local function forceEquip(tool)
+        if not (character and character:FindFirstChild("Humanoid")) then return end
+        local success, err = pcall(function()
+            character.Humanoid:EquipTool(tool)
+        end)
+        task.wait(0.1)
+
+        if not character:FindFirstChild(toolName) then
+            tool.Parent = character
             task.wait(0.1)
         end
-    end)
-end)
 
-local autoOrb = false
-local orbGuiCreado = false
-
-mainTab:AddSwitch("Auto Orb", function(state)
-    autoOrb = state
-
-    -- Solo crea el mensaje visual una vez
-    if not orbGuiCreado then
-        local screenGui = Instance.new("ScreenGui")
-        screenGui.Name = "Sherya"
-        screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-
-        orbGuiCreado = true
+        local equipped = character:FindFirstChild(toolName)
+        if equipped then restoreVisibility(equipped) end
     end
 
-    -- Auto Orb loop
-    task.spawn(function()
-        while autoOrb do
-            for _, v in pairs(workspace:GetChildren()) do
-                if v.Name == "Drop" and v:IsA("BasePart") then
-                    v.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
-                end
-            end
-            task.wait(1)
-        end
-    end)
-end)
-
-local autoDemonSword = false
-
--- Función para equipar Demon Sword
-local function equipDemonSword()
-    local character = player.Character or player.CharacterAdded:Wait()
-    local backpack = player:WaitForChild("Backpack")
-    local tool = backpack:FindFirstChild("Demon Sword") or character:FindFirstChild("Demon Sword")
-    if tool and tool.Parent ~= character then
-        tool.Parent = character
-        task.wait(0.2)
-    end
-end
-
--- Reequipar Demon Sword al reaparecer si está activado el auto
-player.CharacterAdded:Connect(function()
-    if autoDemonSword then
-        task.wait(1)
-        equipDemonSword()
-    end
-end)
-
-mainTab:AddSwitch("Auto (Demon Sword)", function(state)
-    autoDemonSword = state
-
-    if autoDemonSword then
-        equipDemonSword()
-    end
-
-    task.spawn(function()
-        while autoDemonSword do
-            pcall(function()
-                local character = player.Character or player.CharacterAdded:Wait()
-                local tool = character:FindFirstChild("Demon Sword")
-                if not tool then
-                    equipDemonSword()
-                    tool = character:FindFirstChild("Demon Sword")
-                end
-                if tool then
-                    tool:Activate()
-                end
-            end)
-            task.wait(0.15) -- velocidad de ataque
-        end
-    end)
-end)
-
-miscTab:AddTextBox("Auto Speed", function(text)
-    speedValue = tonumber(text) or 16
-
-    if player and player.Character and player.Character:FindFirstChild("Humanoid") then
-        player.Character.Humanoid.WalkSpeed = speedValue
-    end
-end)
-
-local autoSpeedSwitch = miscTab:AddSwitch("Auto Set Speed", function(bool)
-    autoSpeedEnabled = bool
-
-    if autoSpeedEnabled then
-        if player and player.Character and player.Character:FindFirstChild("Humanoid") then
-            player.Character.Humanoid.WalkSpeed = speedValue
-        end
-
-        if autoSpeedConnection then
-            autoSpeedConnection:Disconnect()
-        end
-
-        autoSpeedConnection = player.CharacterAdded:Connect(function(character)
-            local humanoid = character:WaitForChild("Humanoid")
-            if humanoid then
-                humanoid.WalkSpeed = speedValue
-            end
-        end)
-    else
-        if autoSpeedConnection then
-            autoSpeedConnection:Disconnect()
-            autoSpeedConnection = nil
-        end
-    end
-end)
-
-local infiniteJumpSwitch = miscTab:AddSwitch("Infinite Jump", function(bool)
-    if bool then
-        local infiniteJumpConnection
-        infiniteJumpConnection = game:GetService("UserInputService").JumpRequest:Connect(function()
-            if player.Character and player.Character:FindFirstChild("Humanoid") then
-                player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-            end
+    local function equipIfNeeded()
+        if not _G.AutoProteinEgg or not character then return end
+        local equipped = character:FindFirstChild(toolName)
+        local needEquip = not equipped or table.find(equipped:GetDescendants(), function(p)
+            return p:IsA("BasePart") and p.Transparency > 0
         end)
 
-        infiniteJumpSwitch._connection = infiniteJumpConnection
-    else
-        if infiniteJumpSwitch._connection then
-            infiniteJumpSwitch._connection:Disconnect()
-            infiniteJumpSwitch._connection = nil
-        end
-    end
-end)
-
-local noClipSwitch = miscTab:AddSwitch("No Clip", function(bool)
-    if bool then
-        local noclipLoop = game:GetService("RunService").Stepped:Connect(function()
-            for _, child in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
-                if child:IsA("BasePart") and child.CanCollide == true then
-                    child.CanCollide = false
+        if needEquip then
+            local tool = findTool()
+            if tool then
+                if tool.Parent ~= player.Backpack then
+                    tool = tool:Clone()
+                    tool.Parent = player.Backpack
                 end
-            end
-        end)
-
-        noClipSwitch._noclipLoop = noclipLoop
-    else
-        if noClipSwitch._noclipLoop then
-            noClipSwitch._noclipLoop:Disconnect()
-            noClipSwitch._noclipLoop = nil
-        end
-
-        for _, child in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
-            if child:IsA("BasePart") then
-                child.CanCollide = true
+                forceEquip(tool)
             end
         end
     end
-end)
 
-miscTab:AddButton("Chat Espía", function()
-    loadstring(game:HttpGet("https://pastebin.com/raw/Vv9Yw3Uw"))()
-end)
-
-miscTab:AddButton("Anti AFK", function()
-    local VirtualUser = game:GetService("VirtualUser")
-
-    player.Idled:Connect(function()
-        VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    player.CharacterAdded:Connect(function(char)
+        character = char
         task.wait(1)
-        VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        equipIfNeeded()
     end)
 
-    game.StarterGui:SetCore("SendNotification", {
-        Title = "Anti-AFK",
-        Text = "Activado correctamente",
-        Duration = 5
-    })
-end)
-
-local autoStomp = false
-local stompToolName = "Stomp"
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-
--- Función para buscar y equipar la herramienta Stomp
-local function equipStomp()
-    local character = player.Character or player.CharacterAdded:Wait()
-    local backpack = player:WaitForChild("Backpack")
-
-    if character:FindFirstChildOfClass("Tool") and character:FindFirstChildOfClass("Tool").Name == stompToolName then
-        return -- Ya está equipada
-    end
-
-    local stompTool = backpack:FindFirstChild(stompToolName)
-    if stompTool then
-        stompTool.Parent = character
-    end
-end
-
--- Auto equipar después de morir
-player.CharacterAdded:Connect(function()
-    if autoStomp then
-        task.wait(1)
-        equipStomp()
-    end
-end)
-
-local autoPunchAll = false
-
-killerTab:AddSwitch("Auto Kill (Punch)", function(state)
-    autoPunchAll = state
-
-    task.spawn(function()
-        while autoPunchAll do
-            pcall(function()
-                local player = game.Players.LocalPlayer
-                local backpack = player:WaitForChild("Backpack")
-                local character = player.Character or player.CharacterAdded:Wait()
-                local hrp = character:FindFirstChild("HumanoidRootPart")
-
-                -- Equipar herramienta Punch
-                local tool = backpack:FindFirstChild("Punch") or character:FindFirstChild("Punch")
-                if tool and tool.Parent ~= character then
-                    tool.Parent = character
-                end
-
-                -- Iterar sobre jugadores
-                for _, otherPlayer in ipairs(game.Players:GetPlayers()) do
-                    if not autoPunchAll then break end -- por si se desactiva durante el ciclo
-
-                    if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                        hrp.CFrame = otherPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 2, 0)
-
-                        -- Activar Punch
-                        if tool and tool.Activate then
-                            tool:Activate()
-                        end
-
-                        task.wait(1.2) -- Espera antes de ir al siguiente jugador
-                    end
-                end
-            end)
-            task.wait(1)
+    player.Backpack.ChildAdded:Connect(function(child)
+        if _G.AutoProteinEgg and child.Name == toolName then
+            task.wait(0.2)
+            equipIfNeeded()
         end
     end)
-end)
-
-killerTab:AddSwitch("Auto Kill (Pisotear)", function(state)
-    autoStomp = state
 
     task.spawn(function()
-        while autoStomp do
-            pcall(function()
-                equipStomp()
-
-                local character = player.Character
-                local root = character and character:FindFirstChild("HumanoidRootPart")
-                local tool = character and character:FindFirstChild(stompToolName)
-
-                if tool and root then
-                    for _, otherPlayer in pairs(Players:GetPlayers()) do
-                        if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") and otherPlayer.Character:FindFirstChild("Humanoid") and otherPlayer.Character.Humanoid.Health > 0 then
-                            local targetRoot = otherPlayer.Character.HumanoidRootPart
-                            root.CFrame = targetRoot.CFrame + Vector3.new(0, 2, 0) -- Te posiciona justo encima
-                            tool:Activate() -- Hace pisotón
-                            task.wait(0.2)
-                        end
-                    end
-                end
-            end)
+        while _G.AutoProteinEgg do
+            equipIfNeeded()
             task.wait(0.5)
         end
+        print("Auto Protein Egg DESACTIVADO")
     end)
 end)
-
-local autoKill = false
-
-killerTab:AddSwitch("Auto Kill (Demon Sword)", function(state)
-    autoKill = state
-
-    if autoKill then
-        -- Equipa la Demon Sword al activar el switch
-        local character = player.Character or player.CharacterAdded:Wait()
-        local backpack = player:WaitForChild("Backpack")
-        local tool = backpack:FindFirstChild("Demon Sword") or character:FindFirstChild("Demon Sword")
-        if tool and tool.Parent ~= character then
-            tool.Parent = character
-            task.wait(0.2)
-        end
-    end
-
-    task.spawn(function()
-        while autoKill do
-            pcall(function()
-                local lp = game.Players.LocalPlayer
-                local character = lp.Character or lp.CharacterAdded:Wait()
-                local humanoidRoot = character:FindFirstChild("HumanoidRootPart")
-
-                -- Equipar Demon Sword si no está equipada
-                local tool = character:FindFirstChild("Demon Sword") or lp.Backpack:FindFirstChild("Demon Sword")
-                if tool and tool.Parent ~= character then
-                    tool.Parent = character
-                    task.wait(0.2)
-                end
-
-                -- Asegúrate que esté equipada
-                if not character:FindFirstChild("Demon Sword") then return end
-
-                for _, p in ipairs(game.Players:GetPlayers()) do
-                    if p ~= lp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
-                        local enemyHRP = p.Character.HumanoidRootPart
-
-                        -- Teletransportarse cerca del jugador (evitar colisión directa)
-                        humanoidRoot.CFrame = enemyHRP.CFrame * CFrame.new(0, 0, 2)
-
-                        -- Atacar con Demon Sword
-                        local sword = character:FindFirstChild("Demon Sword")
-                        if sword then
-                            sword:Activate()
-                        end
-
-                        task.wait(0.3) -- Tiempo entre cada ataque
-                    end
-                end
-            end)
-            task.wait(1) -- Esperar un poco antes de repetir
-        end
-    end)
-end)
-
-local player = game.Players.LocalPlayer
-
-for _, p in ipairs(game.Players:GetPlayers()) do
-    if p ~= player then
-        playersTab:AddButton("Teleport" .. p.Name, function()
-            if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                local myChar = player.Character
-                if myChar and myChar:FindFirstChild("HumanoidRootPart") then
-                    myChar.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
-                    library:Notify("Teletransportado a " .. p.Name)
-                end
-            end
-        end)
-    end
-end
-
-creditsTab:AddLabel("╭──────────────────────────╮")
-creditsTab:AddLabel("   Script hecho por Isabella")
-creditsTab:AddLabel("╰──────────────────────────╯")
-
-creditsTab:AddLabel("User de Roblox: MissSherya")
-creditsTab:AddLabel("Instagram: Sherya_Luck")
-creditsTab:AddLabel("TikTok: Sherya6000")
-creditsTab:AddLabel("Discord: isabella_hrz")
-
-creditsTab:AddLabel("Gracias por usar el script ")
-
-creditsTab:AddLabel("Recomienda el script para hacer mas actualizaciones")
-creditsTab:AddLabel("Hago peticiones de otros juegos")
-creditsTab:AddLabel("Diviertete amiguito")
-creditsTab:AddLabel("Cost 3000 robux, Acepto transferencias o tarjetas de google play")
