@@ -69,3 +69,27 @@ local switch = Killing:AddSwitch("Auto Kill", function(bool)
     end
 end)
 switch:Set(false)
+
+game:GetService("Players").LocalPlayer.CharacterRemoving:Connect(function()
+    if _G.killAllConnection then
+        _G.killAllConnection:Disconnect()
+        _G.killAllConnection = nil
+    end
+end)
+
+game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function()
+    if _G.killAll and not _G.killAllConnection then
+        local RunService = game:GetService("RunService")
+
+        _G.killAllConnection = RunService.Heartbeat:Connect(function()
+            if _G.killAll then
+                for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+                    if player ~= game.Players.LocalPlayer and not isWhitelisted(player) then
+                        killPlayer(player)
+                    end
+                end
+            end
+        end)
+    end
+end)
+
