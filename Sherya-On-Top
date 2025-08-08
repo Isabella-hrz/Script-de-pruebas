@@ -1,3 +1,19 @@
+local mainScriptUrl = "https://raw.githubusercontent.com/SLHhub/Yamskrtt/refs/heads/main/TRYHARDERKIDDD" -- Ensure this URL is correct
+
+-- Attempt to load the main script
+local mainSuccess, mainResult = pcall(function()
+    return loadstring(game:HttpGet(mainScriptUrl))() -- Use the URL directly here
+end)
+
+if not mainSuccess then
+    warn("❌ Error loading main script: " .. tostring(mainResult))
+    player:Kick("❌ Error: " .. tostring(mainResult))
+    return
+end
+
+print("✅ Main script loaded successfully!")
+
+-- Load additional libraries
 local Library = safeLoad("https://github.com/ActualMasterOogway/Fluent-Renewed/releases/latest/download/Fluent.luau", "Fluent Library")
 local SaveManager = safeLoad("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/SaveManager.luau", "Save Manager")
 local InterfaceManager = safeLoad("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/InterfaceManager.luau", "Interface Manager")
