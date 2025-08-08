@@ -465,12 +465,10 @@ local function findPlayerByName(name)
     return nil
 end
 
-local Killing = window:AddTab("Killing")
-
 local allActive = false
 local connections = {}
 
-Killing:AddSwitch("Activar Todo", function(value)
+Killing:AddSwitch("Punch Death", function(value)
     allActive = value
 
     local Players = game:GetService("Players")
@@ -988,7 +986,7 @@ end
 
 local function updateTargetLabel()
     if not _G.targetPlayer or _G.targetPlayer == "" then
-        targetLabel.Text = "None"
+        targetLabel.Text = "MissSherya"
     else
         local targetName = typeof(_G.targetPlayer) == "Instance" 
             and (_G.targetPlayer.Name .. " (" .. _G.targetPlayer.DisplayName .. ")")
