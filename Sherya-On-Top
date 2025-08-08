@@ -398,7 +398,7 @@ local function isWhitelisted(player)
     return false
 end
 
-local switch = Killing:AddSwitch("Kill All", function(bool)
+local switch = Killing:AddSwitch("Auto Kill", function(bool)
     _G.killAll = bool
 
     if bool then
@@ -547,8 +547,117 @@ local killPlayerSwitch = Killing:AddSwitch("Kill Player", function(bool)
 end)
 killPlayerSwitch:Set(false)
 
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/memejames/elerium-v2-ui-library/main/Library", true))()
+local Players = game:GetService("Players")
+local StarterPack = game:GetService("StarterPack")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
--- Spectate System con Switch y label de Target Player
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local toolName = "Protein Egg"
+
+-- Crear ventana y tab
+local window = library:AddWindow("Sherya Script", {
+    main_color = Color3.fromRGB(200, 0, 255),
+    min_size = Vector2.new(660, 660),
+    can_resize = false,
+})
+local killingTab = window:AddTab("Killing")
+
+-- Switch en GUI (arriba del todo)
+killingTab:AddSwitch("Auto Protein Egg", function(state)
+    _G.AutoProteinEgg = state
+    if state then
+        print("Auto Protein Egg ACTIVADO ✅")
+        task.spawn(function()
+            while _G.AutoProteinEgg do
+                equipIfNeeded()
+                task.wait(0.5)
+            end
+            print("Auto Protein Egg DESACTIVADO ❌")
+        end)
+    else
+        print("Auto Protein Egg DESACTIVADO ❌")
+    end
+end)
+
+-- Funciones
+function restoreVisibility(tool)
+    for _, part in ipairs(tool:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.Transparency = 0
+            pcall(function() part.LocalTransparencyModifier = 0 end)
+        end
+    end
+end
+
+function findTool()
+    local tool = player.Backpack:FindFirstChild(toolName)
+    if tool then return tool end
+    tool = StarterPack:FindFirstChild(toolName)
+    if tool then return tool end
+    tool = ReplicatedStorage:FindFirstChild(toolName)
+    return tool
+end
+
+function forceEquip(tool)
+    if not (character and character:FindFirstChild("Humanoid")) then return end
+    pcall(function()
+        character.Humanoid:EquipTool(tool)
+    end)
+    task.wait(0.1)
+    if not character:FindFirstChild(toolName) then
+        tool.Parent = character
+        task.wait(0.1)
+    end
+    local equipped = character:FindFirstChild(toolName)
+    if equipped then
+        restoreVisibility(equipped)
+    end
+end
+
+function equipIfNeeded()
+    if not _G.AutoProteinEgg or not character then return end
+    local equipped = character:FindFirstChild(toolName)
+    local needEquip = false
+    if not equipped then
+        needEquip = true
+    else
+        for _, part in ipairs(equipped:GetDescendants()) do
+            if part:IsA("BasePart") and part.Transparency > 0 then
+                needEquip = true
+                break
+            end
+        end
+    end
+    if needEquip then
+        local tool = findTool()
+        if tool then
+            if tool.Parent ~= player.Backpack then
+                local clone = tool:Clone()
+                clone.Parent = player.Backpack
+                tool = clone
+            end
+            forceEquip(tool)
+        end
+    end
+end
+
+-- Eventos
+player.CharacterAdded:Connect(function(char)
+    character = char
+    task.wait(1)
+    equipIfNeeded()
+end)
+
+player.Backpack.ChildAdded:Connect(function(child)
+    if _G.AutoProteinEgg and child.Name == toolName then
+        task.wait(0.2)
+        equipIfNeeded()
+    end
+end)
+
+-- Spectate System con Switch
 local spectatingPlayer = nil
 local spectateConnection = nil
 local spectateName = ""
@@ -564,24 +673,10 @@ local function findPlayerByPartialName(name)
     return nil
 end
 
-local function updateTargetLabel()
-    if not _G.targetPlayer or _G.targetPlayer == "" then
-        targetLabel.Text = "None"
-    else
-        local targetName = typeof(_G.targetPlayer) == "Instance" 
-            and (_G.targetPlayer.Name .. " (" .. _G.targetPlayer.DisplayName .. ")")
-            or tostring(_G.targetPlayer)
-        targetLabel.Text = targetName
-    end
-end
-
 local function startSpectating(player)
     if not player or not player.Character or not player.Character:FindFirstChildWhichIsA("Humanoid") then return end
 
     spectatingPlayer = player
-    _G.targetPlayer = player
-    updateTargetLabel()
-
     local camera = workspace.CurrentCamera
     camera.CameraSubject = player.Character:FindFirstChildWhichIsA("Humanoid")
 
@@ -599,24 +694,20 @@ end
 
 local function stopSpectating()
     spectatingPlayer = nil
-    _G.targetPlayer = nil
-    updateTargetLabel()
-
     if spectateConnection then spectateConnection:Disconnect() end
     spectateConnection = nil
-
     local char = game.Players.LocalPlayer.Character
     if char and char:FindFirstChildWhichIsA("Humanoid") then
         workspace.CurrentCamera.CameraSubject = char:FindFirstChildWhichIsA("Humanoid")
     end
 end
 
--- TextBox para nombre del jugador
+-- TextBox para escribir el nombre
 Killing:AddTextBox("Player to Spectate", function(text)
     spectateName = text
 end)
 
--- Switch para espectear
+-- Switch para activar/desactivar
 local spectateSwitch = Killing:AddSwitch("Spectate Player", function(state)
     if state then
         local player = findPlayerByPartialName(spectateName)
@@ -624,7 +715,7 @@ local spectateSwitch = Killing:AddSwitch("Spectate Player", function(state)
             startSpectating(player)
         else
             warn("Jugador no encontrado: " .. tostring(spectateName))
-            spectateSwitch:Set(false) -- apaga si no existe
+            spectateSwitch:Set(false) -- apaga si no lo encuentra
         end
     else
         stopSpectating()
