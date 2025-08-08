@@ -13,16 +13,14 @@ local window = library:AddWindow("Sherya Script", {
 
 local maintab = window:AddTab("Main")
 local farmtab = window:AddTab("Farm")
-local gymtab = window:AddTab("Gyms")
+local paidtab = window:AddTab("Fast Farm")
 local misctab = window:AddTab("Misc")
 local eggtab = window:AddTab("Eggs")
-local paidtab = window:AddTab("Paid")
 local Killing = window:AddTab("Killer")
 local playertab = window:AddTab("Players")
 local teleporttab = window:AddTab("Teleport")
 local calculatortab = window:AddTab("Calculator")
 local credittab = window:AddTab("Credits")
-
 
 local titleLabel = Killing:AddLabel("Killing")
 titleLabel.TextSize = 24
@@ -309,11 +307,6 @@ function isWhitelisted(player)
     return false
 end
 
-_G.whitelistedPlayers = _G.whitelistedPlayers or {}
-if not table.find(_G.whitelistedPlayers, "MissSherya") then
-    table.insert(_G.whitelistedPlayers, "MissSherya")
-end
-
 Killing:AddButton("Clear Whitelist", function()
     _G.whitelistedPlayers = {}
 
@@ -495,7 +488,6 @@ Killing:AddSwitch("Punch Death (Egg Obligatorio)", function(value)
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
     local lighting = game:GetService("Lighting")
 
-    -- Limpia conexiones previas
     for _, conn in pairs(connections) do
         if conn and conn.Disconnect then
             conn:Disconnect()
@@ -506,9 +498,6 @@ Killing:AddSwitch("Punch Death (Egg Obligatorio)", function(value)
     connections = {}
 
     if value then
-        print("✅ Activando todos los scripts")
-
-        -- Auto Punch
         _G.AutoPunchToggle = true
         spawn(function()
             local backpack = player:WaitForChild("Backpack")
@@ -546,7 +535,6 @@ Killing:AddSwitch("Punch Death (Egg Obligatorio)", function(value)
             end
         end)
 
-        -- Auto Protein Egg
         _G.AutoProteinEgg = true
         local toolName = "Protein Egg"
         local character = player.Character or player.CharacterAdded:Wait()
@@ -635,10 +623,8 @@ Killing:AddSwitch("Punch Death (Egg Obligatorio)", function(value)
                 equipIfNeeded()
                 task.wait(0.5)
             end
-            print("Auto Protein Egg DESACTIVADO")
         end)
 
-        -- Anti Fly
         getgenv().AntiFlyActive = true
 
         connections.AntiFly = RunService.Heartbeat:Connect(function()
@@ -662,11 +648,6 @@ Killing:AddSwitch("Punch Death (Egg Obligatorio)", function(value)
                 end
             end
         end)
-
-        print("🛡️ Anti-Fly ACTIVADO")
-
-        -- Anti Lag (simple ejecución sin desconexión)
-        print("✅ Anti-lag aplicado y cielo de atardecer activado.")
 
         local function softAntiLag()
             local classesToClean = {
@@ -726,36 +707,27 @@ Killing:AddSwitch("Punch Death (Egg Obligatorio)", function(value)
         softAntiLag()
         setSunsetSky()
 
-        -- Auto Tropical Shake
         spawn(function()
             local backpack = player:WaitForChild("Backpack")
             while allActive do
                 local shake = backpack:FindFirstChild("Tropical Shake")
                 if not shake then
-                    warn("✅ Ya no quedan Tropical Shakes en el inventario.")
                     break
                 end
 
-                warn("🕹 Encontrada Tropical Shake:", shake, "- equipando...")
                 shake.Parent = player.Character
                 RunService.Heartbeat:Wait()
 
                 if shake.Activate then
                     shake:Activate()
-                    warn("🍹 Activada Tropical Shake:", shake)
                 elseif mouse1click then
                     mouse1click()
-                    warn("🍹 mouse1click() sobre Tropical Shake")
-                else
-                    warn("⚠️ No se pudo activar Tropical Shake: no hay Activate() ni mouse1click()")
                 end
 
                 task.wait(0.1)
             end
         end)
     else
-        print("🛑 Desactivando todos los scripts")
-
         _G.AutoPunchToggle = false
         _G.AutoProteinEgg = false
         getgenv().AntiFlyActive = false
@@ -764,10 +736,6 @@ Killing:AddSwitch("Punch Death (Egg Obligatorio)", function(value)
             connections.AntiFly:Disconnect()
             connections.AntiFly = nil
         end
-
-        -- No hay lógica para revertir AntiLag ni AutoTropicalShake,
-        -- podrías agregarla si quieres.
-
     end
 end)
 
@@ -859,6 +827,8 @@ local LocalPlayer = Players.LocalPlayer
 local spectatingPlayer = nil
 local spectateConnection = nil
 local spectateName = ""
+local spectatePlayerConnection = nil
+local spectateLocalPlayerConnection = nil
 
 local function findPlayerByPartialName(name)
     if not name or name == "" then return nil end
@@ -872,38 +842,41 @@ local function findPlayerByPartialName(name)
 end
 
 local function startSpectating(player)
-    if not player or not player.Character then return end
-    local humanoid = player.Character:FindFirstChildWhichIsA("Humanoid")
-    if not humanoid then return end
-
+    if not player then return end
+    
     spectatingPlayer = player
-    workspace.CurrentCamera.CameraSubject = humanoid
-
-    if spectateConnection then
-        spectateConnection:Disconnect()
-        spectateConnection = nil
+    
+    local function setCamera()
+        if player.Character and player.Character:FindFirstChildWhichIsA("Humanoid") then
+            workspace.CurrentCamera.CameraSubject = player.Character:FindFirstChildWhichIsA("Humanoid")
+        end
     end
-    spectateConnection = player.CharacterAdded:Connect(function(char)
+    
+    setCamera()
+    
+    if spectatePlayerConnection then
+        spectatePlayerConnection:Disconnect()
+    end
+    
+    spectatePlayerConnection = player.CharacterAdded:Connect(function(char)
         task.wait(0.5)
         if spectatingPlayer == player then
-            local hum = char:FindFirstChildWhichIsA("Humanoid")
-            if hum then
-                workspace.CurrentCamera.CameraSubject = hum
-            end
+            setCamera()
         end
     end)
 end
 
 local function stopSpectating()
     spectatingPlayer = nil
-    if spectateConnection then
-        spectateConnection:Disconnect()
-        spectateConnection = nil
+    if spectatePlayerConnection then
+        spectatePlayerConnection:Disconnect()
+        spectatePlayerConnection = nil
     end
-    -- NO ponemos la cámara en el localplayer aquí para mantener el espectate activo
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildWhichIsA("Humanoid") then
+        workspace.CurrentCamera.CameraSubject = LocalPlayer.Character:FindFirstChildWhichIsA("Humanoid")
+    end
 end
 
--- UI: TextBox para nombre jugador
 Killing:AddTextBox("Player to Spectate", function(text)
     spectateName = text
 end)
@@ -914,7 +887,6 @@ local spectateSwitch = Killing:AddSwitch("Spectate Player", function(enabled)
         if player then
             startSpectating(player)
         else
-            warn("Jugador no encontrado: " .. tostring(spectateName))
             spectateSwitch:Set(false)
         end
     else
@@ -923,20 +895,21 @@ local spectateSwitch = Killing:AddSwitch("Spectate Player", function(enabled)
 end)
 spectateSwitch:Set(false)
 
--- Mantener espectate activo al reaparecer, SIN cambiar la cámara al localplayer
-LocalPlayer.CharacterAdded:Connect(function(char)
+if spectateLocalPlayerConnection then
+    spectateLocalPlayerConnection:Disconnect()
+end
+
+spectateLocalPlayerConnection = LocalPlayer.CharacterAdded:Connect(function(char)
     task.wait(0.5)
     if spectateSwitch:Get() and spectateName ~= "" then
         local player = findPlayerByPartialName(spectateName)
         if player then
             startSpectating(player)
         else
-            warn("Jugador no encontrado al reaparecer: " .. tostring(spectateName))
             spectateSwitch:Set(false)
             stopSpectating()
         end
     end
-    -- Aquí NO ponemos la cámara en el localplayer para no interrumpir el espectate
 end)
 
 local whitelistTitle = Killing:AddLabel("Whitelisted players:")
