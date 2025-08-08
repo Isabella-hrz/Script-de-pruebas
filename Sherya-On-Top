@@ -1,11 +1,28 @@
-local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/memejames/elerium-v2-ui-library//main/Library", true))()
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/memejames/elerium-v2-ui-library/main/Library", true))()
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local player = Players.LocalPlayer
+
 local window = library:AddWindow("Sherya Script", {
     main_color = Color3.fromRGB(200, 0, 255),
     min_size = Vector2.new(660, 660),
     can_resize = false,
 })
 
+local maintab = window:AddTab("Main")
+local farmtab = window:AddTab("Farm")
+local gymtab = window:AddTab("Gyms")
+local misctab = window:AddTab("Misc")
+local eggtab = window:AddTab("Eggs")
+local paidtab = window:AddTab("Paid")
 local Killing = window:AddTab("Killer")
+local playertab = window:AddTab("Players")
+local teleporttab = window:AddTab("Teleport")
+local calculatortab = window:AddTab("Calculator")
+local credittab = window:AddTab("Credits")
+
 
 local titleLabel = Killing:AddLabel("Killing")
 titleLabel.TextSize = 24
