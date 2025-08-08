@@ -623,7 +623,7 @@ player.Backpack.ChildAdded:Connect(function(child)
 end)
 
 -- Switch en GUI
-killerTab:AddSwitch("Auto Protein Egg", function(state)
+Killing:AddSwitch("Auto Protein Egg", function(state)
     _G.AutoProteinEgg = state
     if state then
         task.spawn(function()
