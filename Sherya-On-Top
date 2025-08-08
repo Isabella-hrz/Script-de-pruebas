@@ -883,16 +883,10 @@ local function stopSpectating()
         spectateConnection:Disconnect()
         spectateConnection = nil
     end
-    local char = LocalPlayer.Character
-    if char then
-        local humanoid = char:FindFirstChildWhichIsA("Humanoid")
-        if humanoid then
-            workspace.CurrentCamera.CameraSubject = humanoid
-        end
-    end
+    -- NO ponemos la cámara en el localplayer aquí para mantener el espectate activo
 end
 
--- Aquí tienes la UI mínima, adapta según tu librería
+-- UI: TextBox para nombre jugador
 Killing:AddTextBox("Player to Spectate", function(text)
     spectateName = text
 end)
@@ -912,7 +906,7 @@ local spectateSwitch = Killing:AddSwitch("Spectate Player", function(enabled)
 end)
 spectateSwitch:Set(false)
 
--- Mantener espectate activo al reaparecer el localplayer
+-- Mantener espectate activo al reaparecer, SIN cambiar la cámara al localplayer
 LocalPlayer.CharacterAdded:Connect(function(char)
     task.wait(0.5)
     if spectateSwitch:Get() and spectateName ~= "" then
@@ -924,14 +918,8 @@ LocalPlayer.CharacterAdded:Connect(function(char)
             spectateSwitch:Set(false)
             stopSpectating()
         end
-    else
-        if char then
-            local humanoid = char:FindFirstChildWhichIsA("Humanoid")
-            if humanoid then
-                workspace.CurrentCamera.CameraSubject = humanoid
-            end
-        end
     end
+    -- Aquí NO ponemos la cámara en el localplayer para no interrumpir el espectate
 end)
 
 local whitelistTitle = Killing:AddLabel("Whitelisted players:")
@@ -967,7 +955,7 @@ end
 
 local function updateTargetLabel()
     if not _G.targetPlayer or _G.targetPlayer == "" then
-        targetLabel.Text = "MissSherya"
+        targetLabel.Text = "None"
     else
         local targetName = typeof(_G.targetPlayer) == "Instance" 
             and (_G.targetPlayer.Name .. " (" .. _G.targetPlayer.DisplayName .. ")")
