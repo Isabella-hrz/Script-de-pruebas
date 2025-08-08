@@ -1,3 +1,20 @@
+-- Function to safely load a script from a URL
+local function safeLoad(url, name)
+    print("🔄 Loading: " .. name)
+    local success, result = pcall(function()
+        return loadstring(game:HttpGet(url))()
+    end)
+
+    if not success then
+        warn("❌ Loading Failed: " .. name .. " - " .. tostring(result))
+        return nil
+    end
+
+    print("✅ " .. name .. " Successfully Loaded!")
+    return result
+end
+
+-- URL of the main script to load
 local mainScriptUrl = "https://raw.githubusercontent.com/SLHhub/Yamskrtt/refs/heads/main/TRYHARDERKIDDD" -- Ensure this URL is correct
 
 -- Attempt to load the main script
@@ -1261,14 +1278,12 @@ local eggToggle = Tabs.Main:CreateToggle("AutoEgg", {
 			local boostFolder = game.Players.LocalPlayer:FindFirstChild("boostTimersFolder")
 			if not boostFolder then
 				useOneEgg()
-				task.wait(1)
-				continue
+				task.wait(1)				
 			end
 			local eggTimer = boostFolder:FindFirstChild("Protein Egg")
 			if not eggTimer then
 				useOneEgg()
 				task.wait(1)
-				continue
 			end
 			if tonumber(eggTimer.Value) <= 2 then
 				useOneEgg()
@@ -1328,8 +1343,7 @@ local function evilKarmaKill(toggleState)
                 local character = LocalPlayer.Character
                 local leftHand = character and character:FindFirstChild("LeftHand")
                 if not leftHand then
-                    task.wait(0.3)
-                    continue
+                    task.wait(0.3)                    
                 end
                 local muscleEvent = LocalPlayer:FindFirstChild("muscleEvent")
                 if muscleEvent then
@@ -1375,7 +1389,6 @@ local function goodKarmaKill(toggleState)
                 local leftHand = character and character:FindFirstChild("LeftHand")
                 if not leftHand then
                     task.wait(0.3)
-                    continue
                 end
                 local muscleEvent = LocalPlayer:FindFirstChild("muscleEvent")
                 if muscleEvent then
