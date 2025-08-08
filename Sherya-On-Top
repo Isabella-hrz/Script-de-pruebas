@@ -42,7 +42,7 @@ local dropdown = Killing:AddDropdown("Select Pet", function(text)
 end)
 
 local Wild_Wizard = dropdown:Add("Wild Wizard")
-local Powerful_Monster = dropdown:Add("Powerful Monster")
+local Mighty_Monster = dropdown:Add("Mighty Monster")
 
 local button = Killing:AddButton("Remove Attack Animations", function()
     local blockedAnimations = {
@@ -837,20 +837,14 @@ end)
 killPlayerSwitch:Set(false)
 
 -- Spectate System con Switch
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+-- Variables globales que usas para el espectate
 local spectatingPlayer = nil
 local spectateConnection = nil
 local spectateName = ""
-
-local function findPlayerByPartialName(name)
-    if not name or name == "" then return nil end
-    name = name:lower()
-    for _, plr in pairs(game.Players:GetPlayers()) do
-        if plr.Name:lower():find(name, 1, true) or plr.DisplayName:lower():find(name, 1, true) then
-            return plr
-        end
-    end
-    return nil
-end
 
 local function startSpectating(player)
     if not player or not player.Character or not player.Character:FindFirstChildWhichIsA("Humanoid") then return end
@@ -865,7 +859,7 @@ local function startSpectating(player)
         if spectatingPlayer == player then
             local humanoid = char:FindFirstChildWhichIsA("Humanoid")
             if humanoid then
-                camera.CameraSubject = humanoid
+                workspace.CurrentCamera.CameraSubject = humanoid
             end
         end
     end)
@@ -875,18 +869,17 @@ local function stopSpectating()
     spectatingPlayer = nil
     if spectateConnection then spectateConnection:Disconnect() end
     spectateConnection = nil
-    local char = game.Players.LocalPlayer.Character
+    local char = LocalPlayer.Character
     if char and char:FindFirstChildWhichIsA("Humanoid") then
         workspace.CurrentCamera.CameraSubject = char:FindFirstChildWhichIsA("Humanoid")
     end
 end
 
--- TextBox para escribir el nombre
+-- Texto para elegir jugador a espectear
 Killing:AddTextBox("Player to Spectate", function(text)
     spectateName = text
 end)
 
--- Switch para activar/desactivar
 local spectateSwitch = Killing:AddSwitch("Spectate Player", function(state)
     if state then
         local player = findPlayerByPartialName(spectateName)
@@ -902,54 +895,22 @@ local spectateSwitch = Killing:AddSwitch("Spectate Player", function(state)
 end)
 spectateSwitch:Set(false)
 
-game:GetService("Players").LocalPlayer.CharacterRemoving:Connect(function()
-    if _G.deathRingConnection then
-        _G.deathRingConnection:Disconnect()
-        _G.deathRingConnection = nil
-    end
-
-    if _G.killPlayerConnection then
-        _G.killPlayerConnection:Disconnect()
-        _G.killPlayerConnection = nil
-    end
-end)
-
-game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function()
-    if _G.deathRingEnabled and not _G.deathRingConnection then
-        local RunService = game:GetService("RunService")
-
-        _G.deathRingConnection = RunService.Heartbeat:Connect(function()
-            if not _G.deathRingEnabled then return end
-
-            local character = checkCharacter()
-            if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-
-            local myPosition = character.HumanoidRootPart.Position
-
-            for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
-                if player == game.Players.LocalPlayer or isWhitelisted(player) then
-                end
-
-                if isPlayerAlive(player) then
-                    local playerPosition = player.Character.HumanoidRootPart.Position
-                    local distance = (myPosition - playerPosition).Magnitude
-
-                    if distance <= _G.deathRingRange then
-                        killPlayer(player)
-                    end
-                end
-            end
-        end)
-    end
-
-    if _G.killPlayerEnabled and not _G.killPlayerConnection then
-        local RunService = game:GetService("RunService")
-
-        _G.killPlayerConnection = RunService.Heartbeat:Connect(function()
-            if _G.killPlayerEnabled and _G.targetPlayer and isPlayerAlive(_G.targetPlayer) then
-                killPlayer(_G.targetPlayer)
-            end
-        end)
+-- Reconectar espectate al reaparecer el localplayer
+LocalPlayer.CharacterAdded:Connect(function(char)
+    task.wait(0.5)
+    if spectateSwitch:Get() and spectateName ~= "" then
+        local player = findPlayerByPartialName(spectateName)
+        if player then
+            startSpectating(player)
+        else
+            warn("Jugador no encontrado al reaparecer: " .. tostring(spectateName))
+            spectateSwitch:Set(false)
+        end
+    else
+        -- Si no estás especteando, asegúrate que la cámara se ponga en ti
+        if char and char:FindFirstChildWhichIsA("Humanoid") then
+            workspace.CurrentCamera.CameraSubject = char:FindFirstChildWhichIsA("Humanoid")
+        end
     end
 end)
 
